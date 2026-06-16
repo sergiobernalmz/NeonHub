@@ -120,8 +120,28 @@ show_status_short() {
     pm2 status 2>/dev/null | sed -n '1,15p'
 }
 
+check_frontend_env_production() {
+    # Vite solo carga .env.production cuando ejecuta `npm run build`.
+    # Si no existe, el bundle se compila con los valores de .env (desarrollo local,
+    # VITE_API_BASE=http://localhost:3011/api), lo que rompe el frontend en producción
+    # porque el navegador intenta llamar a localhost:3011 en vez de al backend real.
+    if [ ! -f "$ROOT_PATH/frontend/.env.production" ]; then
+        print_err "frontend/.env.production no existe en este servidor."
+        print_err "Vite lo necesita para compilar el bundle de producción."
+        print_err "Crea el archivo a partir de frontend/.env.example con los valores de producción:"
+        print_err "  VITE_API_BASE=/api"
+        print_err "  VITE_TENANT_BASE_DOMAIN=neonhub.es"
+        print_err "  VITE_STRIPE_PUBLISHABLE_KEY=pk_test_... (o pk_live_...)"
+        echo ""
+        return 1
+    fi
+    print_ok "frontend/.env.production presente"
+    return 0
+}
+
 build_frontend() {
     echo -e "\n${BLUE}🔨 Build frontend...${NC}"
+    check_frontend_env_production || return 1
     cd "$ROOT_PATH/frontend" && npm run build
 }
 
