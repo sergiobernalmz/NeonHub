@@ -1,0 +1,131 @@
+{
+    "name": "Workflow 1B: Onboarding Manual",
+    "nodes": [
+        {
+            "parameters": {
+                "httpMethod": "POST",
+                "path": "stripe-webhook-demo",
+                "options": {}
+            },
+            "name": "Webhook",
+            "type": "n8n-nodes-base.webhook",
+            "typeVersion": 1,
+            "position": [
+                250,
+                300
+            ]
+        },
+        {
+            "parameters": {
+                "conditions": {
+                    "string": [
+                        {
+                            "value1": "={{$json.body.payment_status}}",
+                            "value2": "paid"
+                        }
+                    ]
+                }
+            },
+            "name": "IF_Paid",
+            "type": "n8n-nodes-base.if",
+            "typeVersion": 1,
+            "position": [
+                450,
+                300
+            ]
+        },
+        {
+            "parameters": {
+                "keepOnlySet": true,
+                "values": {
+                    "string": [
+                        {
+                            "name": "session_id",
+                            "value": "={{$json.body.id}}"
+                        },
+                        {
+                            "name": "customer_email",
+                            "value": "={{$json.body.customer_details.email}}"
+                        },
+                        {
+                            "name": "subdomain",
+                            "value": "={{$json.body.metadata.subdomain}}"
+                        }
+                    ]
+                },
+                "options": {}
+            },
+            "name": "Set Data",
+            "type": "n8n-nodes-base.set",
+            "typeVersion": 1,
+            "position": [
+                650,
+                280
+            ]
+        },
+        {
+            "parameters": {
+                "method": "POST",
+                "url": "https://webhook.site/demo-email",
+                "sendBody": true,
+                "bodyParameters": {
+                    "parameters": [
+                        {
+                            "name": "subject",
+                            "value": "=Nuevo pago SaaS confirmado - Alta manual requerida - {{$json.subdomain}}"
+                        },
+                        {
+                            "name": "message",
+                            "value": "=Se requiere alta manual para {{$json.customer_email}} en el subdominio {{$json.subdomain}}"
+                        }
+                    ]
+                },
+                "options": {}
+            },
+            "name": "Simulate Email",
+            "type": "n8n-nodes-base.httpRequest",
+            "typeVersion": 1,
+            "position": [
+                850,
+                280
+            ]
+        }
+    ],
+    "connections": {
+        "Webhook": {
+            "main": [
+                [
+                    {
+                        "node": "IF_Paid",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "IF_Paid": {
+            "main": [
+                [
+                    {
+                        "node": "Set Data",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Set Data": {
+            "main": [
+                [
+                    {
+                        "node": "Simulate Email",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        }
+    },
+    "active": false,
+    "settings": {}
+}

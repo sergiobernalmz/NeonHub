@@ -1,0 +1,162 @@
+{
+  "name": "WF-TRIAL-3 — Trial Expirado",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "trial-expired",
+        "responseMode": "onReceived",
+        "options": {}
+      },
+      "id": "tr3a0001-0001-4000-8000-trial000000001",
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        240,
+        300
+      ],
+      "webhookId": "wh-tr3a0001-trial-expired-0001"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{ $json.body.email }}",
+              "operation": "isNotEmpty"
+            },
+            {
+              "value1": "={{ $json.body.store_name }}",
+              "operation": "isNotEmpty"
+            }
+          ]
+        },
+        "combineOperation": "all"
+      },
+      "id": "tr3a0001-0001-4000-8000-trial000000002",
+      "name": "IF — Validar Payload",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [
+        460,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "fromEmail": "NeonHub <soporte@neonhub.es>",
+        "toEmail": "={{ $json.body.email }}",
+        "subject": "={{ 'Tu tienda ha sido pausada — ' + $json.body.store_name }}",
+        "emailType": "html",
+        "message": "<!DOCTYPE html><html lang='es'><head><meta charset='UTF-8'><meta name='viewport' content='width=device-width,initial-scale=1.0'><title>Tu tienda ha sido pausada</title></head><body style='margin:0;padding:0;background:#f1f5f9;font-family:Arial,Helvetica,sans-serif;'><table width='100%' cellpadding='0' cellspacing='0' border='0' style='background:#f1f5f9;'><tr><td align='center' style='padding:48px 20px;'><table width='600' cellpadding='0' cellspacing='0' border='0' style='max-width:600px;width:100%;background:#ffffff;border-radius:16px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.08);border:1px solid #e2e8f0;'><tr><td style='padding:44px 48px 40px;background:linear-gradient(135deg,#ef4444 0%,#dc2626 100%);text-align:center;'><div style='display:inline-block;width:52px;height:52px;background:rgba(255,255,255,0.25);border-radius:12px;margin-bottom:16px;line-height:52px;text-align:center;font-size:26px;'>⚠️</div><h1 style='margin:0 0 6px;color:#ffffff;font-size:24px;font-weight:700;letter-spacing:-0.5px;'>NeonHub</h1><p style='margin:0;color:rgba(255,255,255,0.9);font-size:14px;font-weight:600;'>Tu tienda ha sido pausada</p></td></tr><tr><td style='padding:40px 48px 32px;'><p style='margin:0 0 16px;color:#475569;font-size:16px;line-height:1.75;'>Hola <strong style='color:#1e293b;'>{{ $json.body.username }}</strong>,</p><p style='margin:0 0 24px;color:#475569;font-size:16px;line-height:1.75;'>Tu período de prueba para <strong style='color:#dc2626;'>{{ $json.body.store_name }}</strong> ha finalizado y tu tienda ha sido pausada temporalmente. Tus datos están seguros y conservados.</p><div style='background:#fef2f2;border-radius:12px;padding:20px 24px;margin-bottom:24px;border:1px solid #fecaca;'><table width='100%' cellpadding='0' cellspacing='0'><tr><td style='vertical-align:middle;'><p style='margin:0 0 10px;color:#991b1b;font-size:14px;font-weight:700;'>Estado actual de tu tienda:</p><p style='margin:0 0 6px;color:#b91c1c;font-size:14px;'>🔴 Tienda no visible para tus clientes</p><p style='margin:0 0 6px;color:#b91c1c;font-size:14px;'>🔴 Nuevos pedidos desactivados</p><p style='margin:0;color:#16a34a;font-size:14px;'>✅ Tus datos y productos están guardados</p></td></tr></table></div><div style='background:#f8fafc;border-radius:12px;padding:20px 24px;margin-bottom:28px;border:1px solid #e2e8f0;'><p style='margin:0 0 14px;color:#1e293b;font-size:14px;font-weight:700;'>Reactiva tu tienda hoy mismo:</p><p style='margin:0 0 10px;color:#475569;font-size:14px;'>🏪 <strong>Esencial</strong> — Todo lo necesario para vender online (29€/mes)</p><p style='margin:0 0 10px;color:#475569;font-size:14px;'>🚀 <strong>Profesional</strong> — Diseño personalizado + soporte prioritario (49€/mes)</p><p style='margin:0;color:#475569;font-size:14px;'>⭐ <strong>Premium</strong> — Gestor dedicado + integraciones avanzadas (79€/mes)</p></div><div style='text-align:center;margin-bottom:16px;'><a href='https://neonhub.es/precios' style='display:inline-block;background:linear-gradient(135deg,#ef4444 0%,#dc2626 100%);color:#ffffff;font-size:15px;font-weight:700;padding:16px 40px;border-radius:10px;text-decoration:none;box-shadow:0 4px 16px rgba(239,68,68,0.4);'>Reactivar mi tienda →</a></div><p style='margin:0 0 24px;color:#94a3b8;font-size:13px;text-align:center;'>Sin permanencia. Cancela cuando quieras.</p><div style='background:#f0fdf4;border-radius:10px;padding:16px 24px;border:1px solid #bbf7d0;'><p style='margin:0;color:#166534;font-size:13px;text-align:center;line-height:1.6;'>¿Tienes dudas o quieres hablar con nosotros antes de decidir? Escríbenos a <a href='mailto:soporte@neonhub.es' style='color:#16a34a;font-weight:700;text-decoration:none;'>soporte@neonhub.es</a> — respondemos en menos de 24h.</p></div></td></tr><tr><td style='padding:20px 48px;background:#f8fafc;border-top:1px solid #e2e8f0;text-align:center;'><p style='margin:0 0 4px;color:#94a3b8;font-size:12px;'>Enviado por <strong style='color:#dc2626;'>NeonHub</strong></p><p style='margin:0;color:#cbd5e1;font-size:12px;'>Tus datos se conservarán durante 30 días adicionales.</p></td></tr></table></td></tr></table></body></html>",
+        "options": {}
+      },
+      "id": "tr3a0001-0001-4000-8000-trial000000003",
+      "name": "Send Email — Trial Expired",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2,
+      "position": [
+        700,
+        180
+      ],
+      "credentials": {
+        "smtp": {
+          "id": "1",
+          "name": "SMTP NeonHub"
+        }
+      },
+      "notes": "CREDENCIAL: Misma credencial 'SMTP NeonHub' usada en WF-A, WF-B y WF-C."
+    },
+    {
+      "parameters": {
+        "values": {
+          "string": [
+            {
+              "name": "error",
+              "value": "Payload inválido — faltan campos requeridos: email o store_name"
+            },
+            {
+              "name": "payload_recibido",
+              "value": "={{ JSON.stringify($json.body) }}"
+            },
+            {
+              "name": "timestamp",
+              "value": "={{ new Date().toISOString() }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "tr3a0001-0001-4000-8000-trial000000004",
+      "name": "Set — Error Payload",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 1,
+      "position": [
+        700,
+        420
+      ]
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "IF — Validar Payload",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF — Validar Payload": {
+      "main": [
+        [
+          {
+            "node": "Send Email — Trial Expired",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Set — Error Payload",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "neonhub-wf-trial3-expired-v1",
+  "meta": {
+    "templateCredsSetupCompleted": false,
+    "instanceId": "neonhub-n8n"
+  },
+  "tags": [
+    {
+      "name": "NeonHub"
+    },
+    {
+      "name": "Trial"
+    }
+  ],
+  "_readme": {
+    "workflow": "WF-TRIAL-3 — Trial Expirado",
+    "trigger": "POST https://neonhub75482.n8nservidor.es/webhook/trial-expired",
+    "credencial_smtp": "Misma credencial 'SMTP NeonHub' usada en WF-A, WF-B y WF-C.",
+    "estado": "INACTIVE — Revisar y activar manualmente",
+    "nota_webhook": "Usa typeVersion 2 — las variables están bajo $json.body.*",
+    "payload_esperado": {
+      "email": "ceo@mitienda.com",
+      "username": "Sergio Bernal",
+      "store_name": "Mi Tienda",
+      "type": "trial_expired"
+    }
+  }
+}

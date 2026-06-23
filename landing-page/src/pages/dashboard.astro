@@ -1,0 +1,215 @@
+---
+import Layout from '../layouts/Layout.astro';
+import Navbar from '../components/Navbar.jsx';
+import Footer from '../components/Footer.astro';
+import SupportTicketList from '../components/SupportTicketList.jsx';
+import { validateSession } from '../lib/auth';
+
+const sessionId = Astro.cookies.get('app_auth_token')?.value;
+const session = sessionId ? await validateSession(sessionId) : null;
+
+if (!session) {
+    return Astro.redirect('/login');
+}
+
+const { user } = session;
+
+const BACKEND  = (import.meta.env.PUBLIC_API_BASE_URL || 'http://127.0.0.1:4000/api').replace(/\/$/, '');
+const SECRET   = import.meta.env.ADMIN_API_SECRET || '';
+
+// Obtener estado de tienda (nuevo endpoint con lógica completa)
+let storeStatus: { status: string; store?: any; can_trial?: boolean } = { status: 'no_store', can_trial: true };
+try {
+  const r = await fetch(
+    `${BACKEND}/billing/user-store-status?email=${encodeURIComponent(user.email)}`,
+    { headers: { 'x-admin-secret': SECRET } }
+  );
+  const d = await r.json();
+  if (d.success) storeStatus = d;
+} catch (e) {
+  console.error('[dashboard] user-store-status error:', e);
+}
+
+// Tenants para el listado legacy (solo si status es active/trialing)
+let tenants: any[] = [];
+const envApiBase   = (import.meta.env.PUBLIC_API_BASE_URL || '').replace(/\/$/, '');
+const requestOrigin = Astro.url.origin;
+const apiBaseUrl    = (envApiBase && !envApiBase.includes('localhost') && !envApiBase.includes('127.0.0.1'))
+  ? envApiBase
+  : `${requestOrigin}/api`;
+
+if (storeStatus.status === 'active' || storeStatus.status === 'trialing') {
+  try {
+    const r = await fetch(`${BACKEND}/billing/user-stores?email=${encodeURIComponent(user.email)}`);
+    const d = await r.json();
+    if (d?.success) tenants = d.data;
+  } catch (e) {
+    console.error('[dashboard] user-stores error:', e);
+  }
+}
+---
+
+<Layout title="Dashboard — NeonHub" noindex={true}>
+  <Navbar client:load user={user} />
+  <main class="min-h-screen pt-32 pb-12 px-6 bg-white dark:bg-slate-950">
+    <div class="max-w-7xl mx-auto">
+      <h1 class="text-4xl font-bold text-gray-900 dark:text-white mb-8">Panel de Usuario</h1>
+
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+
+        <!-- Perfil -->
+        <div class="p-6 rounded-2xl bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10">
+          <h2 class="text-xl font-bold text-gray-900 dark:text-white mb-4">Perfil</h2>
+          <div class="space-y-2">
+            <p class="text-gray-500 dark:text-slate-400">Usuario: <span class="text-gray-900 dark:text-white">{user.username}</span></p>
+            <p class="text-gray-500 dark:text-slate-400">Email: <span class="text-gray-900 dark:text-white">{user.email}</span></p>
+          </div>
+        </div>
+
+        <!-- Estado del Servicio -->
+        <div class="p-6 rounded-2xl bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 md:col-span-2">
+          <h2 class="text-xl font-bold text-gray-900 dark:text-white mb-4">Estado del Servicio</h2>
+
+          {storeStatus.status === 'no_store' && (
+            <div>
+              <p class="text-gray-500 dark:text-slate-400 mb-2">No tienes servicios activos actualmente.</p>
+              <p class="text-gray-500 dark:text-slate-500 text-sm mb-5">Crea tu tienda online gratis con 7 días de prueba del plan Profesional. Sin tarjeta de crédito.</p>
+              <a href="/onboarding"
+                class="inline-flex items-center gap-2 px-5 py-3 rounded-xl font-bold text-white text-sm transition-all hover:scale-105"
+                style="background:linear-gradient(135deg,#7c3aed,#4f46e5);box-shadow:0 4px 20px rgba(124,58,237,0.35)">
+                Crear mi tienda gratis (7 días) →
+              </a>
+            </div>
+          )}
+
+          {storeStatus.status === 'trialing' && storeStatus.store && (
+            <div class="space-y-4">
+              <div class="p-4 rounded-xl border border-violet-500/30" style="background:rgba(124,58,237,0.08)">
+                <div class="flex flex-wrap items-center justify-between gap-3 mb-3">
+                  <div>
+                    <h3 class="font-bold text-white text-lg">{storeStatus.store.name}</h3>
+                    <p class="text-sm text-violet-300">https://{storeStatus.store.subdomain}.neonhub.es</p>
+                  </div>
+                  <span class="px-3 py-1 rounded-full text-xs font-bold text-white" style="background:#7c3aed">
+                    Trial — {storeStatus.store.trial_days_left}{storeStatus.store.trial_days_total ? `/${storeStatus.store.trial_days_total}` : ''} {storeStatus.store.trial_days_left === 1 ? 'día' : 'días'} restantes
+                  </span>
+                </div>
+                <div class="flex flex-wrap gap-3">
+                  <button
+                    data-subdomain={storeStatus.store.subdomain}
+                    class="sso-panel-btn px-4 py-2 text-sm bg-violet-600 hover:bg-violet-700 text-white rounded-lg transition-colors font-semibold disabled:opacity-50">
+                    Ir a mi tienda →
+                  </button>
+                  <a href="/precios"
+                    class="px-4 py-2 text-sm border border-gray-300 dark:border-white/15 text-gray-600 dark:text-slate-300 hover:bg-gray-100 dark:hover:bg-white/5 rounded-lg transition-colors font-medium">
+                    Activar plan
+                  </a>
+                </div>
+                <a href="https://neonhub.es/updates/download"
+                  class="text-gray-500 dark:text-slate-400 hover:text-gray-900 dark:hover:text-white"
+                  style="display:inline-flex;align-items:center;gap:6px;font-size:13px;text-decoration:none;margin-top:8px;transition:color 0.2s;">
+                  <span>⬇️</span>
+                  <span>Descargar app Windows</span>
+                </a>
+              </div>
+            </div>
+          )}
+
+          {storeStatus.status === 'active' && tenants.length > 0 && (
+            <div class="space-y-4">
+              {tenants.map((tenant: any) => (
+                <div class="p-4 rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-black/20 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                  <div>
+                    <h3 class="font-bold text-gray-900 dark:text-white text-lg">{tenant.tenant_name || 'Mi Tienda'}</h3>
+                    <p class="text-sm text-gray-500 dark:text-slate-400">https://{tenant.subdomain}.neonhub.es</p>
+                  </div>
+                  <div class="flex flex-col items-end gap-2">
+                    <div class="flex items-center gap-3">
+                      <span class="px-3 py-1 rounded-full bg-green-500/10 text-green-600 dark:text-green-400 text-xs font-medium border border-green-500/20">Activo</span>
+                      <button
+                        data-subdomain={tenant.subdomain}
+                        class="sso-panel-btn px-3 py-1 text-sm bg-gray-100 dark:bg-white/10 hover:bg-gray-200 dark:hover:bg-white/20 text-gray-900 dark:text-white rounded-lg transition-colors border border-gray-200 dark:border-white/5 disabled:opacity-50 disabled:cursor-wait">
+                        Panel de Control
+                      </button>
+                    </div>
+                    <a href="https://neonhub.es/updates/download"
+                      class="text-gray-500 dark:text-slate-400 hover:text-gray-900 dark:hover:text-white"
+                      style="display:inline-flex;align-items:center;gap:6px;font-size:12px;text-decoration:none;transition:color 0.2s;">
+                      <span>⬇️</span>
+                      <span>Descargar app Windows</span>
+                    </a>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {storeStatus.status === 'suspended' && storeStatus.store && (
+            <div class="p-4 rounded-xl border border-red-500/20" style="background:rgba(239,68,68,0.06)">
+              <p class="text-red-300 font-semibold mb-1">Tu tienda está pausada</p>
+              <p class="text-gray-500 dark:text-slate-400 text-sm mb-4">
+                La tienda <strong class="text-gray-900 dark:text-white">{storeStatus.store.name}</strong> ha sido suspendida.
+                Activa un plan para reanudarla.
+              </p>
+              <a href="/precios"
+                class="inline-flex items-center gap-2 px-5 py-3 rounded-xl font-bold text-white text-sm transition-all hover:scale-105"
+                style="background:linear-gradient(135deg,#dc2626,#b91c1c)">
+                Reactivar con un plan →
+              </a>
+            </div>
+          )}
+
+          {storeStatus.status === 'trial_expired' && storeStatus.store && (
+            <div class="p-4 rounded-xl border border-amber-500/20" style="background:rgba(217,119,6,0.06)">
+              <p class="text-amber-300 font-semibold mb-1">Tu período de prueba ha expirado</p>
+              <p class="text-gray-500 dark:text-slate-400 text-sm mb-4">
+                Ya has utilizado tu prueba gratuita con <strong class="text-gray-900 dark:text-white">{storeStatus.store.name}</strong>.
+                Elige un plan para continuar.
+              </p>
+              <a href="/precios"
+                class="inline-flex items-center gap-2 px-5 py-3 rounded-xl font-bold text-white text-sm transition-all hover:scale-105"
+                style="background:linear-gradient(135deg,#d97706,#f59e0b)">
+                Ver planes de pago →
+              </a>
+            </div>
+          )}
+
+        </div>
+      </div>
+
+      <div class="mt-6">
+        <SupportTicketList client:load email={user.email} apiBaseUrl={apiBaseUrl} />
+      </div>
+    </div>
+  </main>
+  <Footer />
+
+<script>
+  document.addEventListener('click', async (e) => {
+    const btn = (e.target as HTMLElement).closest<HTMLButtonElement>('.sso-panel-btn');
+    if (!btn) return;
+    const subdomain = btn.dataset.subdomain;
+    if (!subdomain) return;
+    btn.disabled = true;
+    btn.textContent = 'Conectando…';
+    try {
+      const res = await fetch('/api/sso-redirect', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ subdomain })
+      });
+      const data = await res.json();
+      if (data.success && data.redirect_url) {
+        window.location.href = data.redirect_url;
+      } else {
+        alert(data.message || 'No se pudo conectar con el panel. Inténtalo de nuevo.');
+        btn.disabled = false;
+        btn.textContent = btn.classList.contains('sso-panel-btn') ? 'Panel de Control' : 'Ir a mi tienda →';
+      }
+    } catch {
+      alert('Error de conexión. Inténtalo de nuevo.');
+      btn.disabled = false;
+    }
+  });
+</script>
+</Layout>

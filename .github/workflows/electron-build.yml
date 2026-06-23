@@ -1,0 +1,166 @@
+name: Build Electron App
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  build-windows:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install frontend dependencies
+        working-directory: ./frontend
+        run: npm ci
+
+      - name: Build React app (Electron mode — base path relative)
+        working-directory: ./frontend
+        run: npm run electron:vite:build
+
+      - name: Build Electron installer
+        working-directory: ./frontend
+        run: npx electron-builder --win --publish never
+
+      - name: Rename installer and fix latest.yml (remove spaces)
+        shell: bash
+        run: |
+          cd desktop-dist
+          for f in *\ *; do
+            [ -f "$f" ] && mv "$f" "${f// /-}"
+          done
+          sed -i 's/NeonHub Setup /NeonHub-Setup-/g' latest.yml
+          ls -la
+          cat latest.yml
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: electron-build
+          path: |
+            desktop-dist/*.exe
+            desktop-dist/latest.yml
+            desktop-dist/*.blockmap
+          retention-days: 1
+
+  deploy-updates:
+    needs: build-windows
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: electron-build
+          path: desktop-dist/
+
+      - name: List files
+        run: ls -la desktop-dist/
+
+      - name: Upload files to update server (chunked)
+        run: |
+          CHUNK_SIZE=$((5 * 1024 * 1024))
+          API_KEY="${{ secrets.DEPLOY_API_KEY }}"
+          SERVER="https://neonhub.es/api/deploy"
+
+          upload_chunked() {
+            local file="$1"
+            local filename
+            filename=$(basename "$file")
+            local filesize
+            filesize=$(stat -c%s "$file")
+            local totalChunks
+            totalChunks=$(( (filesize + CHUNK_SIZE - 1) / CHUNK_SIZE ))
+
+            echo "📤 Subiendo $filename ($filesize bytes, $totalChunks chunks)..."
+
+            for i in $(seq 0 $((totalChunks - 1))); do
+              dd if="$file" bs=$CHUNK_SIZE skip=$i count=1 2>/dev/null | \
+              curl -X POST "$SERVER/upload-chunk" \
+                -H "x-deploy-key: $API_KEY" \
+                -F "chunk=@-;filename=chunk" \
+                -F "filename=$filename" \
+                -F "chunkIndex=$i" \
+                -F "totalChunks=$totalChunks" \
+                --max-time 60 \
+                --retry 3 \
+                -f -s
+              echo " ✓ Chunk $((i+1))/$totalChunks"
+            done
+
+            echo "✅ $filename subido correctamente"
+          }
+
+          for file in desktop-dist/*.exe desktop-dist/latest.yml desktop-dist/*.blockmap; do
+            if [ -f "$file" ]; then
+              filesize=$(stat -c%s "$file")
+              if [ "$filesize" -gt 5242880 ]; then
+                upload_chunked "$file"
+              else
+                echo "📤 Subiendo $(basename "$file") (directo)..."
+                curl -X POST "$SERVER/upload" \
+                  -H "x-deploy-key: $API_KEY" \
+                  -F "file=@$file" \
+                  --max-time 60 \
+                  -f -s
+                echo "✅ $(basename "$file") subido"
+              fi
+            fi
+          done
+
+  create-release:
+    needs: build-windows
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Get release notes from commit
+        id: notes
+        run: |
+          NOTES=$(git log -1 --pretty=%s | sed 's/^release: v[0-9][0-9.]*[[:space:]]*-[[:space:]]*//' | cut -c1-200)
+          echo "notes=$NOTES" >> $GITHUB_OUTPUT
+
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: electron-build
+          path: desktop-dist/
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          name: NeonHub ${{ github.ref_name }}
+          draft: false
+          prerelease: false
+          files: desktop-dist/*.exe
+          body: |
+            ## NeonHub ${{ github.ref_name }}
+
+            ### Cambios en esta versión
+            ${{ steps.notes.outputs.notes }}
+
+            ### Descarga directa
+            👉 [Descargar NeonHub para Windows](https://neonhub.es/updates/download)
+
+            ### Actualización automática
+            Si ya tienes NeonHub instalado, se actualizará automáticamente.
+
+            ### Requisitos
+            - Windows 10 o superior
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

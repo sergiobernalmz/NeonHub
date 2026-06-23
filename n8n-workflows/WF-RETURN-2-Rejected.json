@@ -1,0 +1,163 @@
+{
+  "name": "WF-RETURN-2 — Devolución Rechazada",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "return-rejected",
+        "responseMode": "onReceived",
+        "options": {}
+      },
+      "id": "rt2a0001-0001-4000-8000-return0000001",
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        240,
+        300
+      ],
+      "webhookId": "wh-rt2a0001-return-rejected-0001"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{ $json.body.customer_email }}",
+              "operation": "isNotEmpty"
+            },
+            {
+              "value1": "={{ $json.body.order_number }}",
+              "operation": "isNotEmpty"
+            }
+          ]
+        },
+        "combineOperation": "all"
+      },
+      "id": "rt2a0001-0001-4000-8000-return0000002",
+      "name": "IF — Validar Payload",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [
+        460,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "fromEmail": "={{ ($json.body.store_name || 'NeonHub') + ' <soporte@neonhub.es>' }}",
+        "toEmail": "={{ $json.body.customer_email }}",
+        "subject": "={{ 'Devolución no aprobada — #' + $json.body.order_number }}",
+        "emailType": "html",
+        "message": "<!DOCTYPE html><html lang='es'><head><meta charset='UTF-8'><meta name='viewport' content='width=device-width,initial-scale=1.0'><title>Devolución no aprobada</title></head><body style='margin:0;padding:0;background:#f1f5f9;font-family:Arial,Helvetica,sans-serif;'><table width='100%' cellpadding='0' cellspacing='0' border='0' style='background:#f1f5f9;'><tr><td align='center' style='padding:48px 20px;'><table width='600' cellpadding='0' cellspacing='0' border='0' style='max-width:600px;width:100%;background:#ffffff;border-radius:16px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.08);border:1px solid #e2e8f0;'><tr><td style='padding:44px 48px 40px;background:linear-gradient(135deg,#ef4444 0%,#dc2626 100%);text-align:center;'><div style='display:inline-block;width:52px;height:52px;background:rgba(255,255,255,0.25);border-radius:12px;margin-bottom:16px;line-height:52px;text-align:center;font-size:26px;'>❌</div><h1 style='margin:0 0 6px;color:#ffffff;font-size:24px;font-weight:700;letter-spacing:-0.5px;'>NeonHub</h1><p style='margin:0;color:rgba(255,255,255,0.9);font-size:14px;font-weight:600;'>Solicitud de devolución no aprobada</p></td></tr><tr><td style='padding:40px 48px 32px;'><p style='margin:0 0 16px;color:#475569;font-size:16px;line-height:1.75;'>Hola <strong style='color:#1e293b;'>{{ $json.body.customer_name }}</strong>,</p><p style='margin:0 0 24px;color:#475569;font-size:16px;line-height:1.75;'>Tu solicitud de devolución del pedido <strong style='color:#dc2626;'>#{{ $json.body.order_number }}</strong> no ha podido ser aprobada tras revisar tu caso.</p><div style='background:#fef2f2;border-radius:12px;padding:20px 24px;margin-bottom:24px;border:1px solid #fecaca;'><p style='margin:0 0 8px;color:#991b1b;font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;'>📝 Motivo</p><p style='margin:0;color:#b91c1c;font-size:14px;line-height:1.6;'>{{ $json.body.admin_comment }}</p></div><p style='margin:0 0 24px;color:#475569;font-size:15px;line-height:1.75;'>Si tienes alguna pregunta o quieres aportar más información sobre tu caso, contacta con <strong style='color:#1e293b;'>{{ $json.body.store_name }}</strong> directamente.</p><div style='background:#f8fafc;border-radius:10px;padding:16px 24px;border:1px solid #e2e8f0;'><p style='margin:0;color:#64748b;font-size:13px;line-height:1.6;'>¿Necesitas ayuda adicional? Escríbenos a <a href='mailto:soporte@neonhub.es' style='color:#dc2626;font-weight:700;text-decoration:none;'>soporte@neonhub.es</a></p></div></td></tr><tr><td style='padding:20px 48px;background:#f8fafc;border-top:1px solid #e2e8f0;text-align:center;'><p style='margin:0 0 4px;color:#94a3b8;font-size:12px;'>Enviado por <strong style='color:#dc2626;'>NeonHub</strong> en nombre de {{ $json.body.store_name }}</p><p style='margin:0;color:#cbd5e1;font-size:12px;'>Si tienes dudas, contáctanos en soporte@neonhub.es</p></td></tr></table></td></tr></table></body></html>",
+        "options": {}
+      },
+      "id": "rt2a0001-0001-4000-8000-return0000003",
+      "name": "Send Email — Devolución Rechazada",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2,
+      "position": [
+        700,
+        180
+      ],
+      "credentials": {
+        "smtp": {
+          "id": "1",
+          "name": "SMTP NeonHub"
+        }
+      },
+      "notes": "CREDENCIAL: Misma credencial 'SMTP NeonHub' usada en WF-A, WF-B y WF-C."
+    },
+    {
+      "parameters": {
+        "values": {
+          "string": [
+            {
+              "name": "error",
+              "value": "Payload inválido — faltan campos requeridos: customer_email o order_number"
+            },
+            {
+              "name": "payload_recibido",
+              "value": "={{ JSON.stringify($json.body) }}"
+            },
+            {
+              "name": "timestamp",
+              "value": "={{ new Date().toISOString() }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "rt2a0001-0001-4000-8000-return0000004",
+      "name": "Set — Error Payload",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 1,
+      "position": [
+        700,
+        420
+      ]
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "IF — Validar Payload",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF — Validar Payload": {
+      "main": [
+        [
+          {
+            "node": "Send Email — Devolución Rechazada",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Set — Error Payload",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "neonhub-wf-return2-rejected-v1",
+  "meta": {
+    "templateCredsSetupCompleted": false,
+    "instanceId": "neonhub-n8n"
+  },
+  "tags": [
+    {
+      "name": "NeonHub"
+    },
+    {
+      "name": "Returns"
+    }
+  ],
+  "_readme": {
+    "workflow": "WF-RETURN-2 — Devolución Rechazada",
+    "trigger": "POST https://neonhub75482.n8nservidor.es/webhook/return-rejected",
+    "credencial_smtp": "Misma credencial 'SMTP NeonHub' usada en WF-A, WF-B y WF-C.",
+    "estado": "INACTIVE — Revisar y activar manualmente",
+    "nota_webhook": "Usa typeVersion 2 — las variables están bajo $json.body.*",
+    "payload_esperado": {
+      "customer_email": "cliente@gmail.com",
+      "customer_name": "Sergio Bernal",
+      "order_number": "ORD-20260508-0001",
+      "admin_comment": "El producto no presenta defectos visibles",
+      "store_name": "Restaurante de Familia Lee"
+    }
+  }
+}

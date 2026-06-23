@@ -1,0 +1,590 @@
+---
+import Layout from '../layouts/Layout.astro';
+import Navbar from '../components/Navbar.jsx';
+import { validateSession } from '../lib/auth';
+
+const sessionId = Astro.cookies.get('app_auth_token')?.value;
+const session = sessionId ? await validateSession(sessionId) : null;
+const user = session ? session.user : null;
+
+if (!user) {
+  return Astro.redirect('/login?redirect=/onboarding');
+}
+
+const BACKEND = (import.meta.env.PUBLIC_API_BASE_URL || 'http://127.0.0.1:4000/api').replace(/\/$/, '');
+const SECRET  = import.meta.env.ADMIN_API_SECRET || '';
+
+try {
+  const r = await fetch(
+    `${BACKEND}/billing/user-store-status?email=${encodeURIComponent(user.email)}`,
+    { headers: { 'x-admin-secret': SECRET } }
+  );
+  const d = await r.json();
+  if (d.success && d.status !== 'no_store') {
+    if ((d.status === 'active' || d.status === 'trialing') && d.store?.subdomain) {
+      return Astro.redirect(`https://${d.store.subdomain}.neonhub.es/dashboard`);
+    }
+    return Astro.redirect('/dashboard');
+  }
+} catch (e) {
+  // Si falla la verificación, dejamos pasar (no bloquear al usuario)
+  console.error('[onboarding] store-status check failed:', e);
+}
+---
+
+<Layout title="Crea tu tienda — NeonHub" noindex={true}>
+  <Navbar client:load user={user} />
+
+  <main class="min-h-screen bg-white dark:bg-slate-950 flex items-center justify-center px-4 py-24 relative overflow-hidden">
+    <!-- Background glows -->
+    <div class="absolute top-1/4 left-1/4 w-[600px] h-[600px] bg-violet-700/10 rounded-full blur-[140px] pointer-events-none"></div>
+    <div class="absolute bottom-1/4 right-1/4 w-[400px] h-[400px] bg-indigo-600/8 rounded-full blur-[100px] pointer-events-none"></div>
+
+    <div class="w-full max-w-xl relative z-10">
+
+      <!-- Progress bar -->
+      <div class="mb-8">
+        <div class="flex items-center justify-between mb-3">
+          <span class="text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wider">Crea tu tienda gratis</span>
+          <span id="step-label" class="text-xs text-gray-500 dark:text-slate-500">Paso 1 de 3</span>
+        </div>
+        <div class="h-1.5 rounded-full onboarding-progress-track">
+          <div id="progress-bar" class="h-full rounded-full transition-none" style="background:linear-gradient(90deg,#7c3aed,#4f46e5);width:33.3%"></div>
+        </div>
+        <div class="flex justify-between mt-2">
+          {['Tienda', 'Categoría', 'Confirmar'].map((s, i) => (
+            <span class={`step-dot text-xs font-medium transition-colors duration-300 ${i === 0 ? 'text-violet-500' : 'text-gray-400 dark:text-slate-600'}`} data-idx={i}>{s}</span>
+          ))}
+        </div>
+      </div>
+
+      <!-- Card contenedor -->
+      <div class="rounded-2xl border border-gray-200 dark:border-white/10 overflow-hidden onboarding-card">
+
+        <!-- ── PASO 1 — Nombre y subdominio ──────────────────────── -->
+        <div id="step-1" class="step-content p-8">
+          <h2 class="text-2xl font-black text-gray-900 dark:text-white mb-2">¿Cómo se llama tu tienda?</h2>
+          <p class="text-gray-500 dark:text-slate-400 text-sm mb-8">Elige un nombre y la URL donde tus clientes te encontrarán.</p>
+
+          <div class="space-y-5">
+            <div>
+              <label class="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-2">Nombre de la tienda *</label>
+              <input
+                id="inp-name" type="text" placeholder="Ej: Mi Tienda Genial"
+                class="wizard-input onboarding-input w-full px-4 py-3 rounded-lg text-sm focus:outline-none transition-all duration-300"
+              />
+              <p id="err-name" class="mt-1 text-xs text-red-500 dark:text-red-400 hidden"></p>
+            </div>
+
+            <div>
+              <label class="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-2">Subdominio *</label>
+              <div class="flex items-center gap-0">
+                <input
+                  id="inp-subdomain" type="text" placeholder="mitienda"
+                  class="wizard-input onboarding-input-left flex-1 px-4 py-3 rounded-l-lg text-sm focus:outline-none transition-all duration-300"
+                />
+                <span class="onboarding-subdomain-suffix px-3 py-3 text-sm rounded-r-lg" style="white-space:nowrap">.neonhub.es</span>
+              </div>
+              <div id="subdomain-status" class="mt-1.5 text-xs hidden"></div>
+              <p id="err-subdomain" class="mt-1 text-xs text-red-500 dark:text-red-400 hidden"></p>
+            </div>
+
+            <!-- Preview -->
+            <div id="subdomain-preview" class="hidden rounded-xl p-4 border border-violet-500/20" style="background:rgba(124,58,237,0.08)">
+              <p class="text-xs text-gray-500 dark:text-slate-400 mb-1">Tu tienda estará en:</p>
+              <p class="text-violet-600 dark:text-violet-300 font-mono text-sm font-semibold">https://<span id="preview-sub">mitienda</span>.neonhub.es</p>
+            </div>
+          </div>
+
+          <button id="btn-next-1" class="wizard-btn mt-8 w-full py-4 rounded-xl font-bold text-white text-sm transition-all duration-300 hover:scale-[1.02] active:scale-[0.98]"
+            style="background:linear-gradient(135deg,#7c3aed,#4f46e5);box-shadow:0 8px 30px rgba(124,58,237,0.35)">
+            Siguiente →
+          </button>
+        </div>
+
+        <!-- ── PASO 2 — Categoría ─────────────────────────────────── -->
+        <div id="step-2" class="step-content p-8 hidden">
+          <h2 class="text-2xl font-black text-gray-900 dark:text-white mb-2">¿Qué vendes?</h2>
+          <p class="text-gray-500 dark:text-slate-400 text-sm mb-6">Selecciona la categoría que mejor describe tu tienda.</p>
+
+          <div class="grid grid-cols-2 sm:grid-cols-3 gap-3" id="category-grid">
+            {[
+              { id: 'fashion',    label: 'Moda y ropa',    emoji: '👗' },
+              { id: 'tech',       label: 'Tecnología',     emoji: '💻' },
+              { id: 'food',       label: 'Alimentación',   emoji: '🍔' },
+              { id: 'eco',        label: 'Ecológico',      emoji: '🌿' },
+              { id: 'beauty',     label: 'Belleza',        emoji: '💄' },
+              { id: 'home',       label: 'Hogar',          emoji: '🏠' },
+              { id: 'gaming',     label: 'Gaming',         emoji: '🎮' },
+              { id: 'education',  label: 'Educación',      emoji: '📚' },
+              { id: 'art',        label: 'Arte y diseño',  emoji: '🎨' },
+              { id: 'other',      label: 'Otro',           emoji: '📦' },
+            ].map(cat => (
+              <button
+                class="category-btn onboarding-category-btn rounded-xl p-4 text-center transition-all duration-200 border"
+                data-id={cat.id}
+              >
+                <span class="text-2xl block mb-1.5">{cat.emoji}</span>
+                <span class="text-xs font-medium text-gray-600 dark:text-slate-300">{cat.label}</span>
+              </button>
+            ))}
+          </div>
+          <p id="err-category" class="mt-3 text-xs text-red-500 dark:text-red-400 hidden">Selecciona una categoría</p>
+
+          <div class="flex gap-3 mt-8">
+            <button id="btn-back-2" class="flex-1 py-4 rounded-xl font-semibold text-gray-600 dark:text-slate-300 text-sm border border-gray-200 dark:border-white/10 hover:bg-gray-100 dark:hover:bg-white/5 transition-all duration-300">
+              ← Atrás
+            </button>
+            <button id="btn-next-2" class="flex-[2] py-4 rounded-xl font-bold text-white text-sm transition-all duration-300 hover:scale-[1.02] active:scale-[0.98]"
+              style="background:linear-gradient(135deg,#7c3aed,#4f46e5);box-shadow:0 8px 30px rgba(124,58,237,0.35)">
+              Siguiente →
+            </button>
+          </div>
+        </div>
+
+        <!-- ── PASO 3 — Confirmación ──────────────────────────────── -->
+        <div id="step-3" class="step-content p-8 hidden">
+          <h2 class="text-2xl font-black text-gray-900 dark:text-white mb-2">¡Todo listo!</h2>
+          <p class="text-gray-500 dark:text-slate-400 text-sm mb-8">Revisa los datos y crea tu tienda gratuitamente.</p>
+
+          <div class="space-y-3 mb-8">
+            <div class="onboarding-summary-row flex items-center justify-between p-4 rounded-xl">
+              <span class="text-sm text-gray-500 dark:text-slate-400">Nombre</span>
+              <span id="summary-name" class="text-sm font-semibold text-gray-900 dark:text-white"></span>
+            </div>
+            <div class="onboarding-summary-row flex items-center justify-between p-4 rounded-xl">
+              <span class="text-sm text-gray-500 dark:text-slate-400">URL</span>
+              <span id="summary-url" class="text-sm font-mono text-violet-600 dark:text-violet-300"></span>
+            </div>
+            <div class="onboarding-summary-row flex items-center justify-between p-4 rounded-xl">
+              <span class="text-sm text-gray-500 dark:text-slate-400">Categoría</span>
+              <span id="summary-cat" class="text-sm font-semibold text-gray-900 dark:text-white"></span>
+            </div>
+            <div class="p-4 rounded-xl" style="background:rgba(124,58,237,0.12);border:1px solid rgba(124,58,237,0.25)">
+              <div class="flex items-center justify-between">
+                <span class="text-sm text-violet-300 font-semibold">Plan Profesional</span>
+                <span class="text-xs px-2 py-0.5 rounded-full font-bold text-white" style="background:#7c3aed">7 días GRATIS</span>
+              </div>
+              <p class="text-xs text-slate-400 mt-1">Todas las funciones incluidas. Sin tarjeta de crédito.</p>
+            </div>
+          </div>
+
+          <!-- Contraseña del panel -->
+          <div class="mb-6">
+            <label for="inp-password" class="block text-sm font-medium text-slate-300 mb-2">
+              Contraseña del panel de administración <span class="text-red-400">*</span>
+            </label>
+            <input
+              id="inp-password"
+              type="password"
+              placeholder="Mínimo 8 caracteres"
+              class="w-full bg-black/40 border border-slate-700 rounded-xl px-4 py-3 text-white placeholder-slate-500 focus:outline-none focus:border-violet-500 transition-colors"
+            />
+            <!-- Barra de seguridad -->
+            <div id="ob-strength-wrap" class="mt-2 hidden">
+              <div style="background:#1e293b;border-radius:3px;height:6px;overflow:hidden;">
+                <div id="ob-strength-fill" style="height:100%;border-radius:3px;transition:width .2s,background .2s;width:0%"></div>
+              </div>
+              <div class="flex justify-between mt-1">
+                <span id="ob-strength-label" class="text-xs"></span>
+                <span id="ob-strength-bits"  class="text-xs text-slate-500"></span>
+              </div>
+            </div>
+            <!-- Requisitos -->
+            <ul id="ob-pwd-reqs" class="mt-2 space-y-0.5 hidden">
+              <li id="ob-req-length"    class="flex items-center gap-1.5 text-xs text-slate-400"><span class="ob-req-icon">○</span> Mínimo 8 caracteres</li>
+              <li id="ob-req-uppercase" class="flex items-center gap-1.5 text-xs text-slate-400"><span class="ob-req-icon">○</span> Una letra mayúscula</li>
+              <li id="ob-req-number"    class="flex items-center gap-1.5 text-xs text-slate-400"><span class="ob-req-icon">○</span> Un número</li>
+              <li id="ob-req-special"   class="flex items-center gap-1.5 text-xs text-slate-400"><span class="ob-req-icon">○</span> Un carácter especial</li>
+            </ul>
+          </div>
+
+          <!-- Error global -->
+          <div id="create-error" class="hidden mb-4 p-3 rounded-lg text-red-300 text-sm text-center" style="background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.3)"></div>
+
+          <div class="flex gap-3">
+            <button id="btn-back-3" class="flex-1 py-4 rounded-xl font-semibold text-gray-600 dark:text-slate-300 text-sm border border-gray-200 dark:border-white/10 hover:bg-gray-100 dark:hover:bg-white/5 transition-all duration-300">
+              ← Atrás
+            </button>
+            <button id="btn-create" class="flex-[2] py-4 rounded-xl font-bold text-white text-sm relative overflow-hidden transition-all duration-300 hover:scale-[1.02] active:scale-[0.98]"
+              style="background:linear-gradient(135deg,#7c3aed,#4f46e5);box-shadow:0 8px 30px rgba(124,58,237,0.35)">
+              <span id="create-text">Crear mi tienda →</span>
+              <span id="create-loading" class="hidden absolute inset-0 flex items-center justify-center gap-2">
+                <svg class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/></svg>
+                Creando…
+              </span>
+            </button>
+          </div>
+        </div>
+
+        <!-- ── ÉXITO ──────────────────────────────────────────────── -->
+        <div id="step-success" class="step-content p-8 text-center hidden">
+          <div class="w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6" style="background:rgba(124,58,237,0.2);border:1px solid rgba(124,58,237,0.4)">
+            <svg class="w-10 h-10 text-violet-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+          </div>
+          <h2 class="text-2xl font-black text-gray-900 dark:text-white mb-3">¡Tu tienda está lista!</h2>
+          <p class="text-gray-500 dark:text-slate-400 text-sm mb-8">
+            Tienes 7 días de prueba con todas las funciones del plan Profesional.
+          </p>
+          <a id="go-dashboard" href="#" class="block w-full py-4 rounded-xl font-bold text-white text-sm transition-all duration-300 hover:scale-[1.02]"
+            style="background:linear-gradient(135deg,#7c3aed,#4f46e5);box-shadow:0 8px 30px rgba(124,58,237,0.35)">
+            Ir a mi panel de control →
+          </a>
+        </div>
+
+      </div>
+    </div>
+  </main>
+</Layout>
+
+<script>
+  import { gsap } from 'gsap';
+  import { getPasswordError, calcPasswordEntropy, getPasswordStrength, validatePasswordStrength } from '../utils/validation.js';
+
+  // ── Estado global ──────────────────────────────────────────────
+  let currentStep = 1;
+  let selectedCategory = '';
+  let subdomainAvailable = false;
+  let checkTimeout: ReturnType<typeof setTimeout> | null = null;
+
+  const CATEGORIES: Record<string, string> = {
+    fashion: 'Moda y ropa', tech: 'Tecnología', food: 'Alimentación',
+    eco: 'Ecológico', beauty: 'Belleza', home: 'Hogar',
+    gaming: 'Gaming', education: 'Educación', art: 'Arte y diseño', other: 'Otro',
+  };
+
+  // ── Helpers ────────────────────────────────────────────────────
+  function getEl<T extends HTMLElement>(id: string) { return document.getElementById(id) as T; }
+
+  function showStep(n: number, direction: 1 | -1 = 1) {
+    const current = getEl(`step-${currentStep}`);
+    const next    = getEl(`step-${n}`);
+
+    gsap.to(current, {
+      opacity: 0, x: direction * -50, duration: 0.28, ease: 'power2.in',
+      onComplete() {
+        current.classList.add('hidden');
+        next.classList.remove('hidden');
+        gsap.fromTo(next,
+          { opacity: 0, x: direction * 50 },
+          { opacity: 1, x: 0, duration: 0.35, ease: 'power2.out' }
+        );
+      },
+    });
+
+    currentStep = n;
+
+    // Progress
+    const pct = (n / 3) * 100;
+    gsap.to('#progress-bar', { width: `${pct}%`, duration: 0.4, ease: 'power2.out' });
+    getEl('step-label').textContent = `Paso ${n} de 3`;
+    document.querySelectorAll<HTMLElement>('.step-dot').forEach((el, i) => {
+      el.style.color = i < n ? '#7c3aed' : (isDark() ? '#475569' : '#9ca3af');
+    });
+  }
+
+  // ── Subdominio: auto-sugerencia y verificación ─────────────────
+  function toSubdomain(str: string) {
+    return str.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '')
+              .replace(/[^a-z0-9]/g, '').slice(0, 50);
+  }
+
+  function setSubdomainStatus(msg: string, ok: boolean | null) {
+    const el = getEl('subdomain-status');
+    el.textContent = msg;
+    el.className = `mt-1.5 text-xs ${ok === true ? 'text-green-400' : ok === false ? 'text-red-400' : 'text-slate-400'}`;
+    el.classList.toggle('hidden', !msg);
+  }
+
+  async function checkSubdomain(value: string) {
+    if (!value || value.length < 3) {
+      setSubdomainStatus('', null);
+      subdomainAvailable = false;
+      return;
+    }
+    setSubdomainStatus('Comprobando disponibilidad…', null);
+    try {
+      const res = await fetch(`/api/billing/check-subdomain?subdomain=${encodeURIComponent(value)}`);
+      const data = await res.json();
+      subdomainAvailable = !!data.available;
+      setSubdomainStatus(
+        subdomainAvailable ? '✓ Disponible' : '✗ No disponible, elige otro',
+        subdomainAvailable
+      );
+      const inp = getEl<HTMLInputElement>('inp-subdomain');
+      gsap.to(inp, { borderColor: subdomainAvailable ? '#22c55e' : '#ef4444', duration: 0.2 });
+    } catch {
+      setSubdomainStatus('Error al verificar', false);
+      subdomainAvailable = false;
+    }
+  }
+
+  getEl<HTMLInputElement>('inp-name').addEventListener('input', (e) => {
+    const val = (e.target as HTMLInputElement).value;
+    const sub = toSubdomain(val);
+    const inp = getEl<HTMLInputElement>('inp-subdomain');
+    if (!inp.dataset.touched) {
+      inp.value = sub;
+      getEl('preview-sub').textContent = sub || 'mitienda';
+      getEl('subdomain-preview').classList.toggle('hidden', !sub);
+      subdomainAvailable = false;
+      if (checkTimeout) clearTimeout(checkTimeout);
+      checkTimeout = setTimeout(() => checkSubdomain(sub), 500);
+    }
+  });
+
+  getEl<HTMLInputElement>('inp-subdomain').addEventListener('input', (e) => {
+    const inp = e.target as HTMLInputElement;
+    inp.dataset.touched = '1';
+    const sub = toSubdomain(inp.value);
+    inp.value = sub;
+    getEl('preview-sub').textContent = sub || 'mitienda';
+    getEl('subdomain-preview').classList.toggle('hidden', !sub);
+    subdomainAvailable = false;
+    if (checkTimeout) clearTimeout(checkTimeout);
+    checkTimeout = setTimeout(() => checkSubdomain(sub), 500);
+  });
+
+  // ── Focus glow ─────────────────────────────────────────────────
+  const isDark = () => document.documentElement.classList.contains('dark');
+  document.querySelectorAll<HTMLElement>('.wizard-input').forEach(el => {
+    el.addEventListener('focus', () => gsap.to(el, { borderColor: 'rgba(167,139,250,0.6)', duration: 0.25 }));
+    el.addEventListener('blur',  () => gsap.to(el, { borderColor: isDark() ? 'rgba(255,255,255,0.12)' : '#d1d5db', duration: 0.25 }));
+  });
+
+  // ── Paso 1 → 2 ────────────────────────────────────────────────
+  getEl('btn-next-1').addEventListener('click', () => {
+    const name = (getEl<HTMLInputElement>('inp-name').value || '').trim();
+    const sub  = (getEl<HTMLInputElement>('inp-subdomain').value || '').trim();
+
+    let ok = true;
+    if (!name) { getEl('err-name').textContent = 'El nombre es obligatorio'; getEl('err-name').classList.remove('hidden'); ok = false; }
+    else getEl('err-name').classList.add('hidden');
+
+    if (!sub || sub.length < 3) { getEl('err-subdomain').textContent = 'Mínimo 3 caracteres'; getEl('err-subdomain').classList.remove('hidden'); ok = false; }
+    else if (!subdomainAvailable) { getEl('err-subdomain').textContent = 'El subdominio no está disponible'; getEl('err-subdomain').classList.remove('hidden'); ok = false; }
+    else getEl('err-subdomain').classList.add('hidden');
+
+    if (ok) showStep(2, 1);
+  });
+
+  // ── Categorías ────────────────────────────────────────────────
+  document.querySelectorAll<HTMLButtonElement>('.category-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      selectedCategory = btn.dataset.id || '';
+      document.querySelectorAll<HTMLButtonElement>('.category-btn').forEach(b => {
+        const active = b === btn;
+        b.style.background  = active ? 'rgba(124,58,237,0.15)' : '';
+        b.style.borderColor = active ? 'rgba(124,58,237,0.5)' : '';
+        b.querySelector('span:last-child')!.className = `text-xs font-medium ${active ? 'text-violet-600 dark:text-violet-300' : 'text-gray-600 dark:text-slate-300'}`;
+      });
+      gsap.fromTo(btn, { scale: 0.95 }, { scale: 1, duration: 0.25, ease: 'back.out(2)' });
+    });
+  });
+
+  // ── Paso 2 → 3 ────────────────────────────────────────────────
+  getEl('btn-next-2').addEventListener('click', () => {
+    if (!selectedCategory) { getEl('err-category').classList.remove('hidden'); return; }
+    getEl('err-category').classList.add('hidden');
+
+    const name = (getEl<HTMLInputElement>('inp-name').value || '').trim();
+    const sub  = (getEl<HTMLInputElement>('inp-subdomain').value || '').trim();
+    getEl('summary-name').textContent = name;
+    getEl('summary-url').textContent  = `${sub}.neonhub.es`;
+    getEl('summary-cat').textContent  = CATEGORIES[selectedCategory] || selectedCategory;
+    showStep(3, 1);
+  });
+
+  // ── Botones Atrás ─────────────────────────────────────────────
+  getEl('btn-back-2').addEventListener('click', () => showStep(1, -1));
+  getEl('btn-back-3').addEventListener('click', () => showStep(2, -1));
+
+  // ── Crear tienda ──────────────────────────────────────────────
+  getEl('btn-create').addEventListener('click', async () => {
+    const name     = (getEl<HTMLInputElement>('inp-name').value || '').trim();
+    const sub      = (getEl<HTMLInputElement>('inp-subdomain').value || '').trim();
+    const password = (getEl<HTMLInputElement>('inp-password').value || '');
+    const errEl    = getEl('create-error');
+    errEl.classList.add('hidden');
+
+    const pwdErr = getPasswordError(password);
+    if (pwdErr) {
+      errEl.textContent = pwdErr;
+      errEl.classList.remove('hidden');
+      return;
+    }
+
+    getEl('create-text').classList.add('hidden');
+    getEl('create-loading').classList.remove('hidden');
+    getEl<HTMLButtonElement>('btn-create').disabled = true;
+
+    try {
+      const res = await fetch('/api/onboarding/create-trial', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ store_name: name, subdomain: sub, category: selectedCategory, ownerPassword: password }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok || !data.success) {
+        throw new Error(data.message || data.error || 'Error creando la tienda');
+      }
+
+      // Éxito
+      const ssoParam = data.data.sso_token ? `?sso=${data.data.sso_token}` : '';
+      const dashUrl = `https://${data.data.subdomain}.neonhub.es/dashboard${ssoParam}`;
+      getEl<HTMLAnchorElement>('go-dashboard').href = dashUrl;
+
+      const step3 = getEl('step-3');
+      const success = getEl('step-success');
+
+      gsap.to(step3, {
+        opacity: 0, scale: 0.95, duration: 0.3, ease: 'power2.in',
+        onComplete() {
+          step3.classList.add('hidden');
+          success.classList.remove('hidden');
+          gsap.fromTo(success,
+            { opacity: 0, scale: 0.9, y: 20 },
+            { opacity: 1, scale: 1, y: 0, duration: 0.5, ease: 'back.out(1.4)' }
+          );
+          // Progress completo
+          gsap.to('#progress-bar', { width: '100%', duration: 0.5, ease: 'power2.out' });
+        },
+      });
+
+    } catch (err: any) {
+      errEl.textContent = err.message || 'Error inesperado. Inténtalo de nuevo.';
+      errEl.classList.remove('hidden');
+      gsap.fromTo(errEl, { x: -6 }, { x: 0, duration: 0.4, ease: 'elastic.out(1, 0.3)' });
+    } finally {
+      getEl('create-text').classList.remove('hidden');
+      getEl('create-loading').classList.add('hidden');
+      getEl<HTMLButtonElement>('btn-create').disabled = false;
+    }
+  });
+
+  // ── Password strength feedback ────────────────────────────────
+  function setObReq(id: string, ok: boolean) {
+    const li   = document.getElementById(id)!;
+    const icon = li.querySelector('.ob-req-icon')!;
+    icon.textContent = ok ? '✓' : '○';
+    (li as HTMLElement).style.color = ok ? '#4ade80' : '#94a3b8';
+  }
+
+  function updatePasswordStrength(password: string) {
+    const wrap  = document.getElementById('ob-strength-wrap')!;
+    const fill  = document.getElementById('ob-strength-fill')!;
+    const label = document.getElementById('ob-strength-label')!;
+    const bits  = document.getElementById('ob-strength-bits')!;
+    const reqs  = document.getElementById('ob-pwd-reqs')!;
+    if (!password) { wrap.classList.add('hidden'); reqs.classList.add('hidden'); return; }
+    wrap.classList.remove('hidden');
+    reqs.classList.remove('hidden');
+    const entropy = calcPasswordEntropy(password);
+    const s = getPasswordStrength(entropy);
+    const width = Math.min((entropy / 128) * 100, 100);
+    (fill as HTMLElement).style.width = width + '%';
+    (fill as HTMLElement).style.background = s.color;
+    label.textContent = s.label;
+    (label as HTMLElement).style.color = s.color;
+    bits.textContent = entropy + ' bits';
+    const r = validatePasswordStrength(password);
+    setObReq('ob-req-length',    r.length);
+    setObReq('ob-req-uppercase', r.uppercase);
+    setObReq('ob-req-number',    r.number);
+    setObReq('ob-req-special',   r.special);
+  }
+
+  getEl<HTMLInputElement>('inp-password').addEventListener('input', (e) => {
+    updatePasswordStrength((e.target as HTMLInputElement).value);
+  });
+
+  // Entrada inicial
+  gsap.from('.w-full.max-w-xl', { opacity: 0, y: 30, duration: 0.6, ease: 'power3.out' });
+</script>
+
+<style>
+  .onboarding-progress-track {
+    background: #e5e7eb;
+  }
+  :global(.dark) .onboarding-progress-track {
+    background: rgba(255,255,255,0.08);
+  }
+
+  .onboarding-card {
+    background: #ffffff;
+    backdrop-filter: blur(12px);
+    box-shadow: 0 4px 24px rgba(0,0,0,0.06);
+  }
+  :global(.dark) .onboarding-card {
+    background: rgba(255,255,255,0.03);
+    box-shadow: none;
+  }
+
+  .onboarding-input {
+    background: #f9fafb;
+    border: 1px solid #d1d5db;
+    color: #111827;
+  }
+  .onboarding-input::placeholder { color: #9ca3af; }
+  :global(.dark) .onboarding-input {
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.12);
+    color: #ffffff;
+  }
+  :global(.dark) .onboarding-input::placeholder { color: #64748b; }
+
+  .onboarding-input-left {
+    background: #f9fafb;
+    border: 1px solid #d1d5db;
+    border-right: none;
+    color: #111827;
+  }
+  .onboarding-input-left::placeholder { color: #9ca3af; }
+  :global(.dark) .onboarding-input-left {
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.12);
+    border-right: none;
+    color: #ffffff;
+  }
+  :global(.dark) .onboarding-input-left::placeholder { color: #64748b; }
+
+  .onboarding-subdomain-suffix {
+    background: #f3f4f6;
+    border: 1px solid #d1d5db;
+    border-left: none;
+    color: #6b7280;
+  }
+  :global(.dark) .onboarding-subdomain-suffix {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.12);
+    border-left: none;
+    color: #64748b;
+  }
+
+  .onboarding-category-btn {
+    background: #f9fafb;
+    border-color: #e5e7eb;
+  }
+  .onboarding-category-btn:hover {
+    background: #f3f4f6;
+    border-color: #d1d5db;
+  }
+  :global(.dark) .onboarding-category-btn {
+    background: rgba(255,255,255,0.03);
+    border-color: rgba(255,255,255,0.08);
+  }
+  :global(.dark) .onboarding-category-btn:hover {
+    background: rgba(255,255,255,0.06);
+  }
+
+  .onboarding-summary-row {
+    background: #f9fafb;
+    border: 1px solid #e5e7eb;
+  }
+  :global(.dark) .onboarding-summary-row {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.08);
+  }
+</style>

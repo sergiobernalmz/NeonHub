@@ -1,0 +1,45 @@
+export const ROUTES = {
+  // Públicas
+  LOGIN: '/login',
+  REGISTER: '/register',
+  ACTIVATE: '/activate',
+  FORGOT_PASSWORD: '/forgot-password',
+  RESET_PASSWORD: '/reset-password',
+  VERIFY_EMAIL: '/verify-email',
+
+  // Shop
+  SHOP: '/shop',
+  SHOP_LOGIN: '/login',
+  SHOP_REGISTER: '/register',
+  SHOP_VERIFY: '/shop/verify',
+  SHOP_PROFILE: '/shop/profile',
+  SHOP_ORDERS: '/shop/orders',
+  SHOP_SETTINGS: '/shop/settings',
+  SHOP_PREVIEW: '/shop-preview',
+
+  CHECKOUT: '/checkout',
+  ORDER_CONFIRMATION: '/order-confirmation',
+
+  // Dashboard
+  DASHBOARD: '/dashboard',
+  DASHBOARD_PRODUCTS: '/dashboard/products',
+  DASHBOARD_GALLERY: '/dashboard/gallery',
+  DASHBOARD_ORDERS: '/dashboard/orders',
+  DASHBOARD_ANALYTICS: '/dashboard/analytics',
+  DASHBOARD_CUSTOMERS: '/dashboard/customers',
+  DASHBOARD_REPORTS: '/dashboard/reports',
+  DASHBOARD_REPORTS_DETAIL: '/dashboard/reports/:id',
+  DASHBOARD_SUSTAINABILITY: '/dashboard/sustainability',
+  DASHBOARD_INVOICES: '/dashboard/invoices',
+  DASHBOARD_TICKETS: '/dashboard/tickets',
+  SHOP_SUPPORT: '/shop/support',
+  SHOP_TICKETS: '/shop/tickets',
+  SHOP_INVOICES: '/shop/invoices',
+  DASHBOARD_CERTIFICATIONS: '/dashboard/certifications',
+  DASHBOARD_USERS: '/dashboard/users',
+  DASHBOARD_SETTINGS: '/dashboard/settings',
+  DASHBOARD_PROFILE: '/dashboard/profile',
+  DASHBOARD_MODULES: '/dashboard/modules',
+  DASHBOARD_RETURNS: '/dashboard/returns',
+  DASHBOARD_DISCOUNTS: '/dashboard/discounts',
+}

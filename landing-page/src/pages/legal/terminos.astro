@@ -1,0 +1,88 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import Navbar from '../../components/Navbar.jsx';
+import Footer from '../../components/Footer.astro';
+import { validateSession } from '../../lib/auth';
+
+const sessionId = Astro.cookies.get('app_auth_token')?.value;
+const session = sessionId ? await validateSession(sessionId) : null;
+const user = session ? session.user : null;
+---
+
+<Layout
+  title="Términos de uso — NeonHub"
+  description="Términos y condiciones de uso del servicio NeonHub. Condiciones de contratación, responsabilidades y ley aplicable."
+  canonical="https://neonhub.es/legal/terminos"
+  noindex={true}
+>
+  <Navbar client:load user={user} />
+
+  <main class="min-h-screen bg-white dark:bg-slate-950 pt-28 pb-24 px-6">
+    <div class="max-w-3xl mx-auto">
+
+      <h1 class="text-3xl md:text-4xl font-black text-gray-900 dark:text-white mb-2">Términos de uso</h1>
+      <p class="text-gray-500 dark:text-slate-500 text-sm mb-10">Última actualización: mayo de 2026</p>
+
+      <div class="space-y-8 text-gray-600 dark:text-slate-300 text-sm leading-relaxed">
+
+        <section>
+          <h2 class="text-lg font-bold text-gray-900 dark:text-white mb-3">1. Identificación del titular</h2>
+          <p>El presente sitio web y la plataforma NeonHub son titularidad de <strong class="text-gray-900 dark:text-white">NeonLabs</strong>, con domicilio social en Valencia, España, y dirección de contacto <a href="mailto:soporte@neonhub.es" class="text-violet-600 dark:text-violet-400 hover:text-violet-700 dark:hover:text-violet-300">soporte@neonhub.es</a>.</p>
+        </section>
+
+        <section>
+          <h2 class="text-lg font-bold text-gray-900 dark:text-white mb-3">2. Objeto y aceptación</h2>
+          <p>Las presentes condiciones regulan el acceso y uso de la plataforma NeonHub, un servicio SaaS (Software as a Service) que permite crear y gestionar tiendas online. El uso del servicio implica la aceptación íntegra de estas condiciones.</p>
+        </section>
+
+        <section>
+          <h2 class="text-lg font-bold text-gray-900 dark:text-white mb-3">3. Descripción del servicio</h2>
+          <p>NeonHub proporciona a sus clientes una plataforma de comercio electrónico en modalidad de suscripción que incluye: tienda online, panel de gestión, procesamiento de pagos, soporte técnico y actualizaciones del sistema según el plan contratado.</p>
+        </section>
+
+        <section>
+          <h2 class="text-lg font-bold text-gray-900 dark:text-white mb-3">4. Precios y facturación</h2>
+          <p>Los precios están expresados en euros (€) y no incluyen IVA, que se aplicará según la normativa vigente. La facturación se realiza mensual o anualmente según el plan elegido. El pago de instalación es un cargo único no reembolsable. Las cuotas mensuales se facturan por adelantado.</p>
+        </section>
+
+        <section>
+          <h2 class="text-lg font-bold text-gray-900 dark:text-white mb-3">5. Permanencia y cancelación</h2>
+          <p>No existe compromiso de permanencia. El usuario puede cancelar su suscripción en cualquier momento desde el panel de control. La cancelación surtirá efecto al final del período facturado en curso. No se realizan reembolsos por períodos parciales.</p>
+        </section>
+
+        <section>
+          <h2 class="text-lg font-bold text-gray-900 dark:text-white mb-3">6. Obligaciones del usuario</h2>
+          <p>El usuario se compromete a: (a) proporcionar información veraz al registrarse; (b) no utilizar el servicio para actividades ilegales; (c) mantener la confidencialidad de sus credenciales de acceso; (d) no intentar acceder a datos de otros clientes.</p>
+        </section>
+
+        <section>
+          <h2 class="text-lg font-bold text-gray-900 dark:text-white mb-3">7. Limitación de responsabilidad</h2>
+          <p>NeonLabs se compromete a mantener la disponibilidad del servicio con un SLA del 99,5% mensual. No nos hacemos responsables de pérdidas de negocio derivadas de interrupciones del servicio fuera de nuestro control (fuerza mayor, fallos de terceros).</p>
+        </section>
+
+        <section>
+          <h2 class="text-lg font-bold text-gray-900 dark:text-white mb-3">8. Propiedad intelectual</h2>
+          <p>Todos los derechos sobre la plataforma NeonHub, incluyendo código, diseño y marca, son propiedad exclusiva de NeonLabs. El usuario conserva la propiedad de los contenidos que suba a su tienda.</p>
+        </section>
+
+        <section>
+          <h2 class="text-lg font-bold text-gray-900 dark:text-white mb-3">9. Ley aplicable y jurisdicción</h2>
+          <p>El presente contrato se rige por la legislación española. Para la resolución de cualquier controversia, las partes se someten a los juzgados y tribunales de Valencia, renunciando expresamente a cualquier otro fuero.</p>
+        </section>
+
+        <section>
+          <h2 class="text-lg font-bold text-gray-900 dark:text-white mb-3">10. Modificaciones</h2>
+          <p>NeonLabs se reserva el derecho a modificar estas condiciones con un preaviso de 30 días notificado por email. El uso continuado del servicio tras la notificación implica la aceptación de las nuevas condiciones.</p>
+        </section>
+
+      </div>
+
+      <div class="mt-12 pt-8 border-t border-gray-200 dark:border-white/8">
+        <a href="/legal/privacidad" class="text-violet-600 dark:text-violet-400 hover:text-violet-700 dark:hover:text-violet-300 text-sm transition-colors">Política de privacidad →</a>
+      </div>
+
+    </div>
+  </main>
+
+  <Footer />
+</Layout>

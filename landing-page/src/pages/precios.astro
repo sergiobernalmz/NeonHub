@@ -1,0 +1,595 @@
+---
+import Layout from '../layouts/Layout.astro';
+import Navbar from '../components/Navbar.jsx';
+import Footer from '../components/Footer.astro';
+import { validateSession } from '../lib/auth';
+
+const sessionId = Astro.cookies.get('app_auth_token')?.value;
+const session = sessionId ? await validateSession(sessionId) : null;
+const user = session ? session.user : null;
+const dashboardUrl = user?.role === 'admin' ? '/admin' : '/dashboard';
+
+const plans = [
+  {
+    id: 'starter',
+    name: 'Esencial',
+    subtitle: 'Todo lo necesario para empezar a vender online sin complicaciones.',
+    price: 499,
+    monthly: 29,
+    monthlyAnnual: 23,
+    accent: '#6366f1',
+    accentTo: '#8b5cf6',
+    featured: false,
+    enterprise: false,
+    badge: null,
+    features: [
+      'Tienda online completa y funcional',
+      'Tu dirección web personalizada',
+      'Hosting y servidor incluidos',
+      'Certificado SSL de seguridad',
+      'Panel de gestión fácil de usar',
+      'Soporte por email',
+    ],
+    cta: 'Empezar Ahora',
+    ctaHref: '/checkout?plan=starter',
+  },
+  {
+    id: 'installation',
+    name: 'Profesional',
+    subtitle: 'Digitalización completa y diseño personalizado por expertos.',
+    price: 999,
+    monthly: 49,
+    monthlyAnnual: 39,
+    accent: '#7c3aed',
+    accentTo: '#a78bfa',
+    featured: true,
+    enterprise: false,
+    badge: 'Más popular',
+    features: [
+      'Todo lo del plan Esencial',
+      'Diseño personalizado con tu marca',
+      'Configuración inicial de productos',
+      'Soporte prioritario por chat',
+      'Backups diarios automáticos',
+      '1 hora de asesoramiento incluida',
+      'Actualizaciones durante 1 año',
+    ],
+    cta: 'Contratar Servicio',
+    ctaHref: '/checkout?plan=installation',
+  },
+  {
+    id: 'enterprise',
+    name: 'Premium',
+    subtitle: 'Tu socio tecnológico para proyectos de alta escala.',
+    price: 1499,
+    priceLabel: 'Desde',
+    monthly: 79,
+    monthlyAnnual: 63,
+    accent: '#d97706',
+    accentTo: '#f59e0b',
+    featured: false,
+    enterprise: true,
+    badge: null,
+    features: [
+      'Todo lo del plan Profesional',
+      'Diseño exclusivo a medida',
+      'Integraciones con tus herramientas',
+      '3 horas de asesoramiento incluidas',
+      'Soporte premium dedicado',
+      'Actualizaciones y mejoras prioritarias',
+      'Gestor de cuenta personal',
+    ],
+    cta: 'Solicitar Presupuesto',
+    ctaHref: '/checkout?plan=enterprise',
+  },
+];
+
+const faqs = [
+  {
+    q: '¿Hay permanencia o contrato mínimo?',
+    a: 'No. Puedes cancelar en cualquier momento sin penalizaciones. La cuota mensual se factura mes a mes y puedes darte de baja cuando quieras.',
+  },
+  {
+    q: '¿El precio de instalación es un pago único?',
+    a: 'Sí. El precio de instalación (€499, €999 o €1.499) es un pago único que cubre la puesta en marcha de tu tienda. Después solo pagas la cuota mensual.',
+  },
+  {
+    q: '¿Qué incluye el soporte técnico?',
+    a: 'Todos los planes incluyen soporte por email con respuesta en 24-48h. El plan Profesional incluye soporte por chat con respuesta prioritaria. El plan Premium incluye un gestor de cuenta personal.',
+  },
+  {
+    q: '¿Puedo cambiar de plan más adelante?',
+    a: 'Sí, puedes hacer upgrade o downgrade de tu plan en cualquier momento desde tu panel de control. Los cambios se aplican en el siguiente ciclo de facturación.',
+  },
+  {
+    q: '¿Los precios incluyen IVA?',
+    a: 'Los precios mostrados no incluyen IVA. Se aplicará el IVA correspondiente según la normativa vigente en el momento de la facturación.',
+  },
+  {
+    q: '¿Cómo funciona el descuento anual?',
+    a: 'Al contratar el plan anual obtienes un 20% de descuento sobre la cuota mensual. El importe se cobra de una sola vez al inicio del año.',
+  },
+];
+
+const faqJsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'FAQPage',
+  mainEntity: faqs.map(f => ({
+    '@type': 'Question',
+    name: f.q,
+    acceptedAnswer: { '@type': 'Answer', text: f.a },
+  })),
+};
+---
+
+<Layout
+  title="Planes y Precios — NeonHub"
+  jsonLd={faqJsonLd}
+  description="Elige el plan NeonHub que mejor se adapta a tu negocio. Sin permanencia, cancela cuando quieras. Desde 29€/mes todo incluido."
+  canonical="https://neonhub.es/precios"
+>
+  <Navbar client:load user={user} />
+
+  <main class="min-h-screen bg-white dark:bg-slate-950 overflow-x-hidden">
+
+    <!-- ── HERO ─────────────────────────────────────────────────── -->
+    <section class="pricing-hero pt-36 pb-16 px-6 text-center relative">
+      <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[500px] bg-violet-700/10 rounded-full blur-[130px] pointer-events-none"></div>
+      <div class="absolute top-20 right-20 w-[300px] h-[300px] bg-indigo-600/8 rounded-full blur-[80px] pointer-events-none"></div>
+
+      <div class="max-w-4xl mx-auto relative z-10">
+        <div id="hero-badge" class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-gray-100 dark:bg-white/5 border border-gray-200 dark:border-white/10 mb-6 text-xs text-gray-600 dark:text-slate-400 font-semibold tracking-wider uppercase" style="opacity:0">
+          <svg class="w-3 h-3 text-amber-400" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
+          Planes y Precios
+        </div>
+
+        <h1 id="hero-title" class="text-4xl md:text-6xl font-black text-gray-900 dark:text-white mb-6 leading-tight" style="opacity:0">
+          Elige tu plan,<br>
+          <span class="text-transparent bg-clip-text bg-gradient-to-r from-violet-500 to-indigo-500 dark:from-violet-400 dark:to-indigo-400">crece sin límites</span>
+        </h1>
+
+        <p id="hero-sub" class="text-gray-500 dark:text-slate-400 text-xl max-w-2xl mx-auto mb-10" style="opacity:0">
+          Sin permanencia. Sin sorpresas. Cancela cuando quieras.
+        </p>
+
+        <!-- Toggle mensual / anual -->
+        <div id="billing-toggle" class="flex items-center justify-center gap-4" style="opacity:0">
+          <span class="text-sm font-medium text-gray-600 dark:text-slate-300">Mensual</span>
+          <button
+            id="toggle-btn"
+            class="relative w-14 h-7 rounded-full bg-gray-200 dark:bg-slate-800 border border-gray-300 dark:border-white/10 transition-colors duration-300"
+            aria-label="Cambiar ciclo de facturación"
+          >
+            <span id="toggle-dot" class="absolute top-1 left-1 w-5 h-5 rounded-full bg-violet-500 block"></span>
+          </button>
+          <span class="text-sm font-medium text-gray-600 dark:text-slate-300">
+            Anual
+            <span class="ml-1.5 px-2 py-0.5 rounded-full text-xs font-bold bg-violet-500/20 text-violet-600 dark:text-violet-300 border border-violet-500/30">−20%</span>
+          </span>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── PLANES ────────────────────────────────────────────────── -->
+    <section class="plans-section px-6 pb-24 relative">
+      <div class="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-6 items-end">
+
+        {plans.map((plan) => (
+          <div
+            class={`plan-card plan-card-${plan.featured ? 'featured' : plan.enterprise ? 'enterprise' : 'normal'} rounded-3xl flex flex-col relative overflow-hidden${plan.featured ? ' plan-featured' : ''}`}
+            data-monthly={plan.monthly}
+            data-annual={plan.monthlyAnnual * 12}
+            style={`backdrop-filter: blur(12px); padding: ${plan.featured ? '2.5rem 2rem' : '2rem'}; will-change: transform; opacity: 0;`}
+          >
+            {plan.featured && (
+              <div class="absolute top-0 left-0 right-0 h-px" style={`background:linear-gradient(90deg,transparent,${plan.accent},${plan.accentTo},transparent)`}></div>
+            )}
+            {plan.badge && (
+              <div class="absolute top-0 right-0 text-white text-[10px] font-bold px-3 py-1 rounded-bl-xl tracking-wider uppercase" style="background:#7c3aed">
+                {plan.badge}
+              </div>
+            )}
+
+            <!-- Header -->
+            <div class="mb-6">
+              <div class="flex items-center gap-3 mb-3">
+                <div class="w-10 h-10 rounded-xl flex items-center justify-center" style={`background:${plan.accent}22;border:1px solid ${plan.accent}44`}>
+                  {plan.enterprise ? (
+                    <svg class="w-5 h-5" style={`color:${plan.accentTo}`} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"/></svg>
+                  ) : plan.featured ? (
+                    <svg class="w-5 h-5" style={`color:${plan.accentTo}`} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"/></svg>
+                  ) : (
+                    <svg class="w-5 h-5" style={`color:${plan.accentTo}`} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+                  )}
+                </div>
+                <h3 class="text-2xl font-bold plan-name">{plan.name}</h3>
+              </div>
+              <p class="text-sm plan-subtitle">{plan.subtitle}</p>
+            </div>
+
+            <!-- Price -->
+            <div class="mb-1">
+              {plan.priceLabel && <span class="text-sm plan-period">{plan.priceLabel} </span>}
+              <span class="text-5xl font-black plan-price">€{plan.price.toLocaleString('es-ES')}</span>
+              <span class="plan-period ml-1 text-sm">/instalación</span>
+            </div>
+            <div class="mb-8">
+              <p class="text-sm font-medium plan-monthly-text">
+                + €<span class="price-counter">{plan.monthly}</span><span class="price-suffix">/mes</span> todo incluido
+              </p>
+              <div class="price-savings-badge mt-2 flex items-center gap-2" style="opacity:0;visibility:hidden">
+                <span class={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold border ${
+                  plan.featured
+                    ? 'bg-violet-500/15 text-violet-600 dark:text-violet-300 border-violet-500/25'
+                    : plan.enterprise
+                    ? 'bg-amber-500/15 text-amber-700 dark:text-amber-400 border-amber-500/25'
+                    : 'bg-green-500/15 text-green-700 dark:text-green-400 border-green-500/20'
+                }`}>
+                  <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+                  −20% · Ahorras €{(plan.monthly - plan.monthlyAnnual) * 12}/año
+                </span>
+                <span class="text-xs plan-period">{plan.monthlyAnnual}€/mes</span>
+              </div>
+            </div>
+
+            <!-- Features -->
+            <ul class="space-y-3 mb-8 flex-1">
+              {plan.features.map(f => (
+                <li class="flex items-start gap-3 text-sm">
+                  <div class="w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5" style={`background:linear-gradient(135deg,${plan.accent},${plan.accentTo})`}>
+                    <svg class="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>
+                  </div>
+                  <span class="plan-feature">{f}</span>
+                </li>
+              ))}
+            </ul>
+
+            <!-- CTA -->
+            {(plan.featured || plan.enterprise) ? (
+              <a
+                href={plan.ctaHref}
+                class="group flex items-center justify-center gap-2 w-full py-4 rounded-xl font-bold text-sm text-white transition-all duration-300 hover:scale-[1.02] active:scale-[0.98]"
+                style={plan.featured
+                  ? `background:linear-gradient(135deg,${plan.accent},${plan.accentTo});box-shadow:0 8px 30px ${plan.accent}44`
+                  : `background:linear-gradient(135deg,#d97706,#f59e0b);box-shadow:0 8px 30px rgba(217,119,6,0.3)`}
+              >
+                {plan.cta}
+                <svg class="w-4 h-4 group-hover:translate-x-1 transition-transform duration-300" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"/></svg>
+              </a>
+            ) : (
+              <a
+                href={plan.ctaHref}
+                class="plan-cta-normal group flex items-center justify-center gap-2 w-full py-4 rounded-xl font-bold text-sm transition-all duration-300 hover:scale-[1.02] active:scale-[0.98]"
+              >
+                {plan.cta}
+                <svg class="w-4 h-4 group-hover:translate-x-1 transition-transform duration-300" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"/></svg>
+              </a>
+            )}
+          </div>
+        ))}
+      </div>
+
+      <p class="text-center text-gray-500 dark:text-slate-600 text-sm mt-12 max-w-xl mx-auto">
+        Todos los planes incluyen hosting, servidor, backups, SSL y soporte técnico. Sin sorpresas ni costes ocultos.
+      </p>
+    </section>
+
+    <!-- ── FAQ ──────────────────────────────────────────────────── -->
+    <section class="faq-section px-6 pb-24" style="background:linear-gradient(180deg,transparent,rgba(124,58,237,0.04),transparent)">
+      <div class="max-w-3xl mx-auto">
+        <h2 class="faq-heading text-3xl md:text-4xl font-bold text-gray-900 dark:text-white text-center mb-12" style="opacity:0">
+          Preguntas <span class="text-transparent bg-clip-text bg-gradient-to-r from-violet-500 to-indigo-500 dark:from-violet-400 dark:to-indigo-400">frecuentes</span>
+        </h2>
+
+        <div class="space-y-3" id="faq-list">
+          {faqs.map(item => (
+            <div class="faq-item rounded-2xl overflow-hidden" style="opacity:0">
+              <button class="faq-trigger w-full text-left px-6 py-5 flex items-center justify-between gap-4 text-gray-800 dark:text-white font-semibold hover:text-violet-600 dark:hover:text-violet-300 transition-colors duration-200">
+                <span>{item.q}</span>
+                <svg class="faq-arrow w-5 h-5 flex-shrink-0 text-gray-400 dark:text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                </svg>
+              </button>
+              <div class="faq-content" style="height:0;overflow:hidden">
+                <div class="faq-inner px-6 pb-5 text-gray-500 dark:text-slate-400 text-sm leading-relaxed">{item.a}</div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+
+    <!-- ── CTA ──────────────────────────────────────────────────── -->
+    <section class="cta-section px-6 pb-32">
+      <div class="max-w-3xl mx-auto text-center">
+        <div class="rounded-3xl p-12 relative overflow-hidden cta-card" style="background:linear-gradient(135deg,rgba(109,40,217,0.2),rgba(79,70,229,0.1));border:1px solid rgba(139,92,246,0.2);opacity:0">
+          <div class="absolute inset-0 pointer-events-none" style="background:radial-gradient(ellipse at 50% 0%,rgba(124,58,237,0.15),transparent 70%)"></div>
+          <h2 class="text-3xl md:text-4xl font-black text-gray-900 dark:text-white mb-4 relative z-10">¿Listo para empezar?</h2>
+          <p class="text-gray-500 dark:text-slate-400 mb-8 text-lg relative z-10">Crea tu tienda en minutos. Sin código, sin complicaciones.</p>
+          <div class="flex flex-col sm:flex-row items-center justify-center gap-4 relative z-10">
+            {user ? (
+              <a
+                href={dashboardUrl}
+                class="px-8 py-4 rounded-full font-bold text-white text-sm transition-all duration-300 hover:scale-105 active:scale-95"
+                style="background:linear-gradient(135deg,#7c3aed,#4f46e5);box-shadow:0 0 40px rgba(124,58,237,0.35)"
+              >
+                Ir a mi dashboard →
+              </a>
+            ) : (
+              <a
+                href="/register"
+                class="px-8 py-4 rounded-full font-bold text-white text-sm transition-all duration-300 hover:scale-105 active:scale-95"
+                style="background:linear-gradient(135deg,#7c3aed,#4f46e5);box-shadow:0 0 40px rgba(124,58,237,0.35)"
+              >
+                Crear mi tienda gratis →
+              </a>
+            )}
+            <a
+              href="/contacto"
+              class="px-8 py-4 rounded-full font-semibold text-gray-600 dark:text-slate-300 text-sm border border-gray-200 dark:border-white/10 hover:bg-gray-50 dark:hover:bg-white/5 transition-all duration-300"
+            >
+              Hablar con ventas
+            </a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- DESCARGA APP ESCRITORIO -->
+    <section style="text-align:center;padding:60px 20px;border-top:1px solid var(--border, rgba(0,0,0,0.08));" class="dark:[border-top-color:rgba(255,255,255,0.1)]">
+      <p style="font-size:13px;font-weight:600;text-transform:uppercase;letter-spacing:2px;color:#6366f1;margin-bottom:12px;">
+        App de escritorio
+      </p>
+      <h2 class="text-gray-900 dark:text-white" style="font-size:28px;font-weight:800;margin-bottom:8px;">
+        Gestiona tu tienda desde Windows
+      </h2>
+      <p class="text-gray-500 dark:text-slate-400" style="margin-bottom:24px;font-size:16px;">
+        Descarga la app de escritorio y accede a tu panel de gestión sin abrir el navegador.
+      </p>
+      <a href="https://neonhub.es/updates/download"
+        style="display:inline-flex;align-items:center;gap:10px;background:linear-gradient(135deg,#6366f1,#8b5cf6);color:#fff;padding:14px 28px;border-radius:12px;text-decoration:none;font-weight:700;font-size:16px;">
+        <span>⬇️</span>
+        <span>Descargar para Windows</span>
+      </a>
+      <p class="text-gray-400 dark:text-slate-500" style="font-size:12px;margin-top:12px;">
+        Windows 10 o superior · Gratis para clientes NeonHub
+      </p>
+    </section>
+
+  </main>
+
+  <Footer />
+</Layout>
+
+<style>
+  /* ── PLAN CARDS ── valores por defecto en modo claro, sobreescritos en oscuro */
+  .plan-card {
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.08);
+  }
+  :global(.dark) .plan-card {
+    background: rgba(15, 23, 42, 0.8);
+    border: 1px solid rgba(255, 255, 255, 0.07);
+    box-shadow: none;
+  }
+  .plan-card-featured {
+    background: linear-gradient(160deg, rgba(109, 40, 217, 0.06) 0%, #ffffff 100%);
+    border: 1px solid rgba(139, 92, 246, 0.3);
+    box-shadow: 0 8px 32px rgba(124, 58, 237, 0.12);
+  }
+  :global(.dark) .plan-card-featured {
+    background: linear-gradient(160deg, rgba(109, 40, 217, 0.25) 0%, rgba(15, 14, 26, 0.95) 100%);
+    border: 1px solid rgba(139, 92, 246, 0.4);
+    box-shadow: none;
+  }
+  .plan-card-enterprise {
+    background: linear-gradient(160deg, rgba(217, 119, 6, 0.06) 0%, #ffffff 100%);
+    border: 1px solid rgba(217, 119, 6, 0.2);
+    box-shadow: 0 4px 24px rgba(217, 119, 6, 0.08);
+  }
+  :global(.dark) .plan-card-enterprise {
+    background: linear-gradient(160deg, rgba(120, 53, 15, 0.15) 0%, rgba(15, 14, 26, 0.95) 100%);
+    border: 1px solid rgba(217, 119, 6, 0.25);
+    box-shadow: none;
+  }
+
+  /* ── PLAN CARD TEXT ── valores por defecto en modo claro */
+  .plan-name  { color: #111827; }
+  .plan-price { color: #111827; }
+  .plan-period { color: #9ca3af; }
+  .plan-subtitle { color: #6b7280; }
+  .plan-feature  { color: #374151; }
+  .plan-monthly-text { color: #6b7280; }
+
+  :global(.dark) .plan-name   { color: #ffffff; }
+  :global(.dark) .plan-price  { color: #ffffff; }
+  :global(.dark) .plan-period { color: #64748b; }
+  :global(.dark) .plan-feature { color: #cbd5e1; }
+
+  /* texto de la tarjeta destacada */
+  .plan-card-featured .plan-subtitle    { color: #7c3aed; }
+  .plan-card-featured .plan-monthly-text { color: #7c3aed; }
+  .plan-card-featured .plan-feature     { color: #4c1d95; }
+  :global(.dark) .plan-card-featured .plan-subtitle    { color: #c4b5fd; }
+  :global(.dark) .plan-card-featured .plan-monthly-text { color: #c4b5fd; }
+  :global(.dark) .plan-card-featured .plan-feature     { color: #ede9fe; }
+
+  /* texto de la tarjeta enterprise */
+  .plan-card-enterprise .plan-monthly-text { color: #b45309; }
+  :global(.dark) .plan-card-enterprise .plan-monthly-text { color: #fbbf24; }
+  :global(.dark) .plan-card-enterprise .plan-subtitle { color: #94a3b8; }
+
+  /* ── BOTÓN CTA SECUNDARIO (plan Esencial) */
+  .plan-cta-normal {
+    background: #f3f4f6;
+    border: 1px solid #d1d5db;
+    color: #374151;
+  }
+  :global(.dark) .plan-cta-normal {
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: #ffffff;
+  }
+
+  /* ── PREGUNTAS FRECUENTES */
+  .faq-item {
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+  }
+  :global(.dark) .faq-item {
+    background: rgba(255, 255, 255, 0.03);
+    border-color: rgba(255, 255, 255, 0.08);
+  }
+</style>
+
+<script>
+  import { gsap } from 'gsap';
+  import { ScrollTrigger } from 'gsap/ScrollTrigger';
+
+  gsap.registerPlugin(ScrollTrigger);
+
+  const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  // ── ANIMACIÓN DE ENTRADA DEL HERO ─────────────────────────────
+  if (!reduced) {
+    const tl = gsap.timeline({ defaults: { ease: 'power3.out' } });
+    tl.to('#hero-badge',   { opacity: 1, y: 0, duration: 0.5 })
+      .to('#hero-title',   { opacity: 1, y: 0, duration: 0.7 }, '-=0.3')
+      .to('#hero-sub',     { opacity: 1, y: 0, duration: 0.5 }, '-=0.4')
+      .to('#billing-toggle', { opacity: 1, duration: 0.4 }, '-=0.2');
+
+    // tarjetas con stagger (se activa al entrar en el viewport)
+    gsap.to('.plan-card', {
+      opacity: 1, y: 0,
+      stagger: 0.15, duration: 0.7, ease: 'power2.out',
+      scrollTrigger: { trigger: '.plans-section', start: 'top 82%', once: true },
+    });
+
+    // brillo pulsante en la tarjeta destacada
+    const featured = document.querySelector<HTMLElement>('.plan-featured');
+    if (featured) {
+      gsap.to(featured, {
+        boxShadow: '0 0 50px rgba(124,58,237,0.45)',
+        duration: 1.5, repeat: -1, yoyo: true, ease: 'sine.inOut', delay: 1.2,
+      });
+    }
+
+    // cabecera de preguntas frecuentes
+    gsap.to('.faq-heading', {
+      opacity: 1, y: 0, duration: 0.7, ease: 'power3.out',
+      scrollTrigger: { trigger: '.faq-section', start: 'top 85%', once: true },
+    });
+
+    // items de las preguntas con stagger
+    gsap.to('.faq-item', {
+      opacity: 1, x: 0, stagger: 0.07, duration: 0.5, ease: 'power2.out',
+      scrollTrigger: { trigger: '#faq-list', start: 'top 88%', once: true },
+    });
+
+    // tarjeta CTA
+    gsap.to('.cta-card', {
+      opacity: 1, scale: 1, duration: 0.7, ease: 'back.out(1.3)',
+      scrollTrigger: { trigger: '.cta-section', start: 'top 85%', once: true },
+    });
+
+    // posición inicial de los elementos con desplazamiento en y
+    gsap.set(['#hero-title', '#hero-sub'], { y: 30 });
+    gsap.set('.plan-card', { y: 60 });
+    gsap.set('.faq-item', { x: -20 });
+    gsap.set('.cta-card', { scale: 0.96 });
+  } else {
+    // visibles directamente si hay preferencia de movimiento reducido
+    gsap.set(['#hero-badge','#hero-title','#hero-sub','#billing-toggle',
+               '.plan-card','.faq-heading','.faq-item','.cta-card'], { opacity: 1 });
+  }
+
+  // ── TOGGLE MENSUAL/ANUAL ───────────────────────────────────────
+  let isAnnual = false;
+  const isDark = () => document.documentElement.classList.contains('dark');
+
+  document.getElementById('toggle-btn')?.addEventListener('click', () => {
+    isAnnual = !isAnnual;
+
+    // animamos el punto y la pista del toggle
+    gsap.to('#toggle-dot', { x: isAnnual ? 28 : 0, duration: 0.35, ease: 'power2.inOut' });
+    gsap.to('#toggle-btn', {
+      backgroundColor: isAnnual
+        ? 'rgba(124,58,237,0.4)'
+        : isDark() ? 'rgba(30,41,59,1)' : '#e5e7eb',
+      duration: 0.35,
+    });
+
+    // animamos el precio de cada tarjeta
+    document.querySelectorAll<HTMLElement>('.plan-card').forEach(card => {
+      const counter = card.querySelector<HTMLElement>('.price-counter')!;
+      const suffix  = card.querySelector<HTMLElement>('.price-suffix')!;
+      const badge   = card.querySelector<HTMLElement>('.price-savings-badge')!;
+      const monthly = parseInt(card.dataset.monthly || '0');
+      const annual  = parseInt(card.dataset.annual  || '0');
+
+      const fromVal = isAnnual ? monthly : annual;
+      const toVal   = isAnnual ? annual  : monthly;
+
+      // contador: subimos/bajamos el número de forma suave
+      const obj = { val: fromVal };
+      gsap.to(obj, {
+        val: toVal,
+        duration: 0.75,
+        ease: 'power2.out',
+        onUpdate() {
+          counter.textContent = Math.round(obj.val).toLocaleString('es-ES');
+        },
+      });
+
+      // sufijo: cross-fade entre /mes y /año
+      gsap.timeline()
+        .to(suffix, { opacity: 0, duration: 0.15, ease: 'power2.in' })
+        .call(() => { suffix.textContent = isAnnual ? '/año' : '/mes'; })
+        .to(suffix, { opacity: 1, duration: 0.15, ease: 'power2.out' });
+
+      // badge de ahorro: aparece o desaparece según el modo
+      if (isAnnual) {
+        gsap.set(badge, { visibility: 'visible', y: 6, opacity: 0 });
+        gsap.to(badge, { opacity: 1, y: 0, duration: 0.45, delay: 0.45, ease: 'back.out(1.8)' });
+      } else {
+        gsap.to(badge, {
+          opacity: 0, y: 6, duration: 0.2, ease: 'power2.in',
+          onComplete() { gsap.set(badge, { visibility: 'hidden', y: 0 }); },
+        });
+      }
+    });
+  });
+
+  // ── ACORDEÓN DE PREGUNTAS ──────────────────────────────────────
+  document.querySelectorAll<HTMLElement>('.faq-trigger').forEach(trigger => {
+    trigger.addEventListener('click', () => {
+      const item    = trigger.closest<HTMLElement>('.faq-item')!;
+      const content = item.querySelector<HTMLElement>('.faq-content')!;
+      const arrow   = item.querySelector<HTMLElement>('.faq-arrow')!;
+      const isOpen  = item.dataset.open === '1';
+
+      // cerramos el resto de preguntas abiertas
+      document.querySelectorAll<HTMLElement>('.faq-item[data-open="1"]').forEach(o => {
+        if (o === item) return;
+        const c = o.querySelector<HTMLElement>('.faq-content')!;
+        const a = o.querySelector<HTMLElement>('.faq-arrow')!;
+        delete o.dataset.open;
+        gsap.to(c, { height: 0, duration: 0.3, ease: 'power2.in' });
+        gsap.to(a, { rotation: 0, duration: 0.3 });
+      });
+
+      if (isOpen) {
+        delete item.dataset.open;
+        gsap.to(content, { height: 0, duration: 0.3, ease: 'power2.in' });
+        gsap.to(arrow,   { rotation: 0, duration: 0.3 });
+      } else {
+        item.dataset.open = '1';
+        gsap.set(content, { height: 'auto', overflow: 'hidden' });
+        const h = content.offsetHeight;
+        gsap.fromTo(content, { height: 0 }, { height: h, duration: 0.35, ease: 'power2.out' });
+        gsap.to(arrow, { rotation: 180, duration: 0.35, ease: 'power2.out' });
+      }
+    });
+  });
+</script>

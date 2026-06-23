@@ -1,0 +1,241 @@
+---
+import Layout from "../layouts/Layout.astro";
+import Navbar from "../components/Navbar.jsx";
+import Footer from "../components/Footer.astro";
+import { findUserByEmail } from "../lib/db";
+import { createSession, verifyPassword, validateSession } from "../lib/auth";
+
+let loginError = "";
+if (Astro.request.method === "POST") {
+  try {
+    const data = await Astro.request.formData();
+    const email = ((data.get("email") as string) || "").trim().toLowerCase();
+    const password = data.get("password") as string;
+
+    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      loginError = "Introduce un email válido.";
+    } else if (!password) {
+      loginError = "La contraseña no puede estar vacía.";
+    } else {
+      const user = await findUserByEmail(email);
+      if (user) {
+        if (!user.email_verified) {
+          loginError = "Debes verificar tu correo antes de iniciar sesión.";
+        } else {
+          const valid = await verifyPassword(password, user.password, user.id);
+          if (valid) {
+            const sessionId = await createSession(user.id);
+            Astro.cookies.set("app_auth_token", sessionId, {
+              path: "/",
+              httpOnly: true,
+              secure: import.meta.env.PROD,
+              maxAge: 60 * 60 * 24 * 30,
+            });
+            const redirectTo = Astro.url.searchParams.get("redirect");
+            const defaultDest = user.role === "admin" ? "/admin" : "/dashboard";
+            return Astro.redirect(redirectTo || defaultDest);
+          } else {
+            loginError = "Contraseña incorrecta.";
+          }
+        }
+      } else {
+        loginError = "Usuario no encontrado.";
+      }
+    }
+  } catch (err) {
+    loginError = "Error inesperado. Contacta con soporte si persiste.";
+  }
+}
+
+const sessionId = Astro.cookies.get("app_auth_token")?.value;
+const session = sessionId ? await validateSession(sessionId) : null;
+const user = session ? session.user : null;
+
+if (user) {
+  return Astro.redirect(user.role === "admin" ? "/admin" : "/dashboard");
+}
+---
+
+<Layout
+  title="Iniciar sesión — NeonHub"
+  description="Accede a tu panel de NeonHub para gestionar tu tienda online."
+  noindex={true}
+>
+  <Navbar client:load user={user} />
+  <main
+    class="min-h-screen pt-32 pb-12 px-6 bg-white dark:bg-slate-950 flex items-center justify-center"
+  >
+    <div
+      class="w-full max-w-md p-8 rounded-2xl bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 shadow-sm dark:shadow-none backdrop-blur-sm"
+    >
+      <div class="text-center mb-6">
+        <img
+          src="/neonhub.png"
+          alt="NeonHub"
+          class="w-16 h-16 rounded-2xl mx-auto mb-4"
+          style="box-shadow: 0 8px 32px rgba(99,102,241,0.3);"
+        />
+        <h1 class="text-3xl font-bold text-gray-900 dark:text-white">
+          Bienvenido de nuevo
+        </h1>
+      </div>
+
+      {
+        loginError && (
+          <div class="mb-4 p-3 rounded-lg bg-red-50 dark:bg-red-500/10 border border-red-300 dark:border-red-500/40 text-red-600 dark:text-red-300 text-sm text-center">
+            {loginError}
+          </div>
+        )
+      }
+
+      <form id="login-form" method="POST" class="space-y-6" novalidate>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-2"
+            >Email</label
+          >
+          <input
+            id="login-email"
+            type="email"
+            name="email"
+            autocomplete="email"
+            class="w-full px-4 py-3 bg-gray-50 dark:bg-white/5 border border-gray-300 dark:border-white/10 rounded-lg text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-slate-400 focus:outline-none focus:border-violet-500 transition-colors"
+            placeholder="Email"
+          />
+          <p id="err-login-email" class="mt-1 text-xs text-red-500 dark:text-red-400 hidden"></p>
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-2"
+            >Contraseña</label
+          >
+          <div class="relative">
+            <input
+              id="login-password"
+              type="password"
+              name="password"
+              autocomplete="current-password"
+              class="w-full px-4 py-3 pr-12 bg-gray-50 dark:bg-white/5 border border-gray-300 dark:border-white/10 rounded-lg text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-slate-400 focus:outline-none focus:border-violet-500 transition-colors"
+            />
+            <button
+              type="button"
+              id="toggle-login-pwd"
+              class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-slate-400 hover:text-gray-700 dark:hover:text-white transition-colors"
+            >
+              <svg
+                id="pwd-eye-open"
+                class="w-5 h-5"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                ><path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                ></path></svg
+              >
+              <svg
+                id="pwd-eye-off"
+                class="w-5 h-5 hidden"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                ><path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.542-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.542 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"
+                ></path></svg
+              >
+            </button>
+          </div>
+          <p id="err-login-pwd" class="mt-1 text-xs text-red-500 dark:text-red-400 hidden"></p>
+        </div>
+        <div class="flex items-center justify-between">
+          <label class="flex items-center gap-2 cursor-pointer select-none">
+            <input
+              id="login-remember"
+              type="checkbox"
+              name="remember"
+              checked
+              class="w-4 h-4 rounded accent-violet-500"
+            />
+            <span class="text-sm text-gray-500 dark:text-slate-400">Recuérdame</span>
+          </label>
+          <a
+            href="/auth/forgot-password"
+            class="text-xs text-gray-500 dark:text-slate-400 hover:text-violet-600 dark:hover:text-violet-400 transition-colors"
+            >¿Olvidaste tu contraseña?</a
+          >
+        </div>
+        <button
+          id="login-submit"
+          type="submit"
+          disabled
+          class="w-full py-3 bg-violet-600 hover:bg-violet-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold rounded-lg transition-colors"
+        >
+          Iniciar Sesión
+        </button>
+      </form>
+      <p class="mt-4 text-center text-gray-500 dark:text-slate-400 text-sm">
+        ¿No tienes cuenta? <a
+          href="/register"
+          class="text-violet-600 dark:text-violet-400 hover:text-violet-700 dark:hover:text-violet-300">Regístrate</
+        >
+      </p>
+    </div>
+  </main>
+  <Footer />
+</Layout>
+
+<script>
+  import { validateEmail } from "../utils/validation.js";
+
+  const inpEmail = document.getElementById("login-email") as HTMLInputElement;
+  const inpPass = document.getElementById("login-password") as HTMLInputElement;
+  const errEmail = document.getElementById("err-login-email")!;
+  const errPwd = document.getElementById("err-login-pwd")!;
+  const submitBtn = document.getElementById(
+    "login-submit",
+  ) as HTMLButtonElement;
+  const toggleBtn = document.getElementById("toggle-login-pwd")!;
+  const eyeOpen = document.getElementById("pwd-eye-open")!;
+  const eyeOff = document.getElementById("pwd-eye-off")!;
+
+  toggleBtn.addEventListener("click", () => {
+    const isText = inpPass.type === "text";
+    inpPass.type = isText ? "password" : "text";
+    eyeOpen.classList.toggle("hidden", !isText);
+    eyeOff.classList.toggle("hidden", isText);
+  });
+
+  function validate() {
+    let ok = true;
+    if (inpEmail.value && !validateEmail(inpEmail.value)) {
+      errEmail.textContent = "Introduce un email válido";
+      errEmail.classList.remove("hidden");
+      inpEmail.style.borderColor = "#ef4444";
+      ok = false;
+    } else {
+      errEmail.classList.add("hidden");
+      inpEmail.style.borderColor = inpEmail.value ? "#22c55e" : "";
+    }
+    if (inpPass.value && inpPass.value.length < 8) {
+      errPwd.textContent = "Mínimo 8 caracteres";
+      errPwd.classList.remove("hidden");
+      inpPass.style.borderColor = "#ef4444";
+      ok = false;
+    } else {
+      errPwd.classList.add("hidden");
+      inpPass.style.borderColor = inpPass.value ? "#22c55e" : "";
+    }
+    const allFilled = inpEmail.value.length > 0 && inpPass.value.length > 0;
+    submitBtn.disabled = !allFilled || !ok;
+  }
+
+  inpEmail.addEventListener("input", validate);
+  inpPass.addEventListener("input", validate);
+</script>

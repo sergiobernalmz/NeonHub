@@ -1,0 +1,176 @@
+{
+  "name": "Workflow 8: Approved Provisioning — Notificación Tenant Aprobado [DEMO]",
+  "_note": "WORKFLOW PROVISIONAL. Path 'stripe-webhook-demo-approved' es el equivalente demo de la aprobación manual mientras el provisioning automático completo no está operativo. Cuando el flujo automático Stripe→backend→n8n quede integrado sin intervención manual, este workflow debe reemplazarse por uno con path de producción.",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "stripe-webhook-demo-approved",
+        "options": {}
+      },
+      "name": "Webhook stripe-webhook-demo-approved",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [100, 300],
+      "id": "ap_wh01"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{$json[\"body\"][\"customer_email\"]}}",
+              "operation": "isNotEmpty"
+            },
+            {
+              "value1": "={{$json[\"body\"][\"tenant_name\"]}}",
+              "operation": "isNotEmpty"
+            },
+            {
+              "value1": "={{$json[\"body\"][\"subdomain\"]}}",
+              "operation": "isNotEmpty"
+            }
+          ]
+        }
+      },
+      "name": "Payload válido?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [300, 300],
+      "id": "ap_if01"
+    },
+    {
+      "parameters": {
+        "keepOnlySet": true,
+        "values": {
+          "string": [
+            {
+              "name": "customer_email",
+              "value": "={{$json[\"body\"][\"customer_email\"]}}"
+            },
+            {
+              "name": "tenant_name",
+              "value": "={{$json[\"body\"][\"tenant_name\"]}}"
+            },
+            {
+              "name": "subdomain",
+              "value": "={{$json[\"body\"][\"subdomain\"]}}"
+            },
+            {
+              "name": "job_id",
+              "value": "={{$json[\"body\"][\"job_id\"]}}"
+            },
+            {
+              "name": "store_url",
+              "value": "=https://{{$json[\"body\"][\"subdomain\"]}}.{{$env[\"NEONHUB_BASE_DOMAIN\"]}}"
+            },
+            {
+              "name": "admin_url",
+              "value": "=https://{{$json[\"body\"][\"subdomain\"]}}.{{$env[\"NEONHUB_BASE_DOMAIN\"]}}/admin"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "name": "Construir URLs del tenant",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 1,
+      "position": [500, 160],
+      "id": "ap_set1"
+    },
+    {
+      "parameters": {
+        "fromEmail": "onboarding@neonhub.es",
+        "toEmail": "={{$json[\"customer_email\"]}}",
+        "subject": "=✅ Tu espacio {{$json[\"tenant_name\"]}} ha sido aprobado — NeonHub",
+        "html": "=<div style=\"font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;\"><h2 style=\"color: #00f0ff;\">¡Tu espacio está listo!</h2><p>Hola,</p><p>Tu solicitud para el espacio <strong>{{$json[\"tenant_name\"]}}</strong> ha sido aprobada y el provisioning está en proceso.</p><table style=\"width:100%; border-collapse:collapse; margin:20px 0;\"><tr><td style=\"padding:8px; background:#f5f5f5; font-weight:bold;\">URL de tu tienda</td><td style=\"padding:8px;\"><a href=\"{{$json[\"store_url\"]}}\">{{$json[\"store_url\"]}}</a></td></tr><tr><td style=\"padding:8px; background:#f5f5f5; font-weight:bold;\">Panel de administración</td><td style=\"padding:8px;\"><a href=\"{{$json[\"admin_url\"]}}\">{{$json[\"admin_url\"]}}</a></td></tr></table><p>En los próximos minutos tu panel estará completamente operativo. Recibirás un correo de bienvenida con tus credenciales de acceso en cuanto el proceso termine.</p><div style=\"text-align:center; margin:30px 0;\"><a href=\"{{$json[\"admin_url\"]}}\" style=\"background-color:#00f0ff; color:#000; padding:12px 24px; text-decoration:none; border-radius:4px; font-weight:bold;\">Ir al panel cuando esté listo</a></div><p>Saludos,<br>El equipo de NeonHub</p></div>",
+        "options": {}
+      },
+      "name": "Email: Tenant aprobado",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 1,
+      "position": [700, 160],
+      "id": "ap_mail1"
+    },
+    {
+      "parameters": {
+        "values": {
+          "string": [
+            {
+              "name": "resultado",
+              "value": "payload_invalido"
+            },
+            {
+              "name": "evento",
+              "value": "={{$json[\"body\"][\"event\"] || \"desconocido\"}}"
+            },
+            {
+              "name": "customer_email_recibido",
+              "value": "={{$json[\"body\"][\"customer_email\"] || \"ausente\"}}"
+            },
+            {
+              "name": "tenant_name_recibido",
+              "value": "={{$json[\"body\"][\"tenant_name\"] || \"ausente\"}}"
+            },
+            {
+              "name": "subdomain_recibido",
+              "value": "={{$json[\"body\"][\"subdomain\"] || \"ausente\"}}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "name": "Log: Payload inválido",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 1,
+      "position": [500, 440],
+      "id": "ap_set2"
+    }
+  ],
+  "connections": {
+    "Webhook stripe-webhook-demo-approved": {
+      "main": [
+        [
+          {
+            "node": "Payload válido?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Payload válido?": {
+      "main": [
+        [
+          {
+            "node": "Construir URLs del tenant",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Log: Payload inválido",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Construir URLs del tenant": {
+      "main": [
+        [
+          {
+            "node": "Email: Tenant aprobado",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {},
+  "meta": {},
+  "id": "ap_wf08"
+}

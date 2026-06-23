@@ -1,0 +1,117 @@
+{
+  "name": "Workflow 7: Store Created — Email Bienvenida Owner",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "store-created",
+        "options": {}
+      },
+      "name": "Webhook store-created",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [100, 300],
+      "id": "sc_wh01"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{$json[\"body\"][\"owner_email\"]}}",
+              "operation": "isNotEmpty"
+            },
+            {
+              "value1": "={{$json[\"body\"][\"store_url\"]}}",
+              "operation": "isNotEmpty"
+            }
+          ]
+        }
+      },
+      "name": "Payload válido?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [300, 300],
+      "id": "sc_if01"
+    },
+    {
+      "parameters": {
+        "fromEmail": "onboarding@neonhub.es",
+        "toEmail": "={{$json[\"body\"][\"owner_email\"]}}",
+        "subject": "=🚀 ¡Tu tienda {{$json[\"body\"][\"store_name\"]}} está lista en NeonHub!",
+        "html": "=<div style=\"font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;\"><h2 style=\"color: #00f0ff;\">¡Bienvenido a NeonHub!</h2><p>Hola {{$json[\"body\"][\"owner_name\"]}},</p><p>Tu tienda <strong>{{$json[\"body\"][\"store_name\"]}}</strong> ha sido creada y está lista para usar.</p><table style=\"width:100%; border-collapse:collapse; margin:20px 0;\"><tr><td style=\"padding:8px; background:#f5f5f5; font-weight:bold;\">URL de tu tienda</td><td style=\"padding:8px;\"><a href=\"{{$json[\"body\"][\"store_url\"]}}\">{{$json[\"body\"][\"store_url\"]}}</a></td></tr><tr><td style=\"padding:8px; background:#f5f5f5; font-weight:bold;\">Panel de administración</td><td style=\"padding:8px;\"><a href=\"{{$json[\"body\"][\"admin_url\"]}}\">{{$json[\"body\"][\"admin_url\"]}}</a></td></tr><tr><td style=\"padding:8px; background:#f5f5f5; font-weight:bold;\">Email de acceso</td><td style=\"padding:8px;\">{{$json[\"body\"][\"owner_email\"]}}</td></tr><tr><td style=\"padding:8px; background:#f5f5f5; font-weight:bold;\">Contraseña</td><td style=\"padding:8px;\">{{$json[\"body\"][\"must_set_password\"] ? \"Debes establecer tu contraseña en el primer acceso al panel.\" : $json[\"body\"][\"password\"]}}</td></tr></table><div style=\"text-align:center; margin:30px 0;\"><a href=\"{{$json[\"body\"][\"admin_url\"]}}\" style=\"background-color:#00f0ff; color:#000; padding:12px 24px; text-decoration:none; border-radius:4px; font-weight:bold;\">Ir al panel de administración</a></div><p>Si tienes cualquier duda, responde a este correo.</p><p>Saludos,<br>El equipo de NeonHub</p></div>",
+        "options": {}
+      },
+      "name": "Email: Bienvenida owner",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 1,
+      "position": [500, 160],
+      "id": "sc_mail1"
+    },
+    {
+      "parameters": {
+        "values": {
+          "string": [
+            {
+              "name": "resultado",
+              "value": "payload_invalido"
+            },
+            {
+              "name": "evento",
+              "value": "={{$json[\"body\"][\"event\"] || \"desconocido\"}}"
+            },
+            {
+              "name": "owner_email_recibido",
+              "value": "={{$json[\"body\"][\"owner_email\"] || \"ausente\"}}"
+            },
+            {
+              "name": "store_url_recibido",
+              "value": "={{$json[\"body\"][\"store_url\"] || \"ausente\"}}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "name": "Log: Payload inválido",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 1,
+      "position": [500, 440],
+      "id": "sc_set1"
+    }
+  ],
+  "connections": {
+    "Webhook store-created": {
+      "main": [
+        [
+          {
+            "node": "Payload válido?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Payload válido?": {
+      "main": [
+        [
+          {
+            "node": "Email: Bienvenida owner",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Log: Payload inválido",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {},
+  "meta": {},
+  "id": "sc_wf07"
+}

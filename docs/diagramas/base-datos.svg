@@ -1,0 +1,229 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1400 900" font-family="system-ui, -apple-system, sans-serif">
+  <defs>
+    <marker id="rel" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5" orient="auto">
+      <path d="M0 1 L10 5 L0 9 z" fill="#94A3B8"/>
+    </marker>
+    <marker id="relp" viewBox="0 0 10 10" refX="1" refY="5" markerWidth="5" markerHeight="5" orient="auto">
+      <path d="M10 1 L0 5 L10 9 z" fill="#94A3B8"/>
+    </marker>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1400" height="900" fill="#0A0A0F"/>
+
+  <!-- Title -->
+  <text x="700" y="34" text-anchor="middle" font-size="20" font-weight="700" fill="#FFFFFF">Modelo de Datos — NeonHub (ERD Simplificado)</text>
+
+  <!-- ════════════════════════════════════
+       TABLE HELPER — each table:
+       header: purple bg + white bold text
+       rows: dark bg + gray text
+       ════════════════════════════════════ -->
+
+  <!-- ── users (x=40, y=55, w=220, h=165) ── -->
+  <rect x="40" y="55" width="220" height="165" rx="8" fill="#0F172A" stroke="#7C3AED" stroke-width="2"/>
+  <rect x="40" y="55" width="220" height="34" rx="8" fill="#7C3AED"/>
+  <rect x="40" y="81" width="220" height="8" fill="#7C3AED"/>
+  <text x="150" y="77" text-anchor="middle" font-size="13" font-weight="700" fill="#FFFFFF">users</text>
+  <text x="56"  y="103" font-size="10" fill="#94A3B8">🔑 id</text>
+  <text x="56"  y="121" font-size="10" fill="#FFFFFF">email</text>
+  <text x="56"  y="139" font-size="10" fill="#94A3B8">password_hash</text>
+  <text x="56"  y="157" font-size="10" fill="#FFFFFF">first_name · last_name</text>
+  <text x="56"  y="175" font-size="10" fill="#94A3B8">is_active · store_id</text>
+  <text x="56"  y="193" font-size="10" fill="#94A3B8">login_attempts · locked_until</text>
+  <line x1="40" y1="113" x2="260" y2="113" stroke="#7C3AED30" stroke-width="1"/>
+  <line x1="40" y1="131" x2="260" y2="131" stroke="#7C3AED30" stroke-width="1"/>
+  <line x1="40" y1="149" x2="260" y2="149" stroke="#7C3AED30" stroke-width="1"/>
+  <line x1="40" y1="167" x2="260" y2="167" stroke="#7C3AED30" stroke-width="1"/>
+  <line x1="40" y1="185" x2="260" y2="185" stroke="#7C3AED30" stroke-width="1"/>
+
+  <!-- ── roles (x=40, y=280, w=220, h=125) ── -->
+  <rect x="40" y="280" width="220" height="125" rx="8" fill="#0F172A" stroke="#7C3AED" stroke-width="2"/>
+  <rect x="40" y="280" width="220" height="34" rx="8" fill="#7C3AED"/>
+  <rect x="40" y="306" width="220" height="8" fill="#7C3AED"/>
+  <text x="150" y="302" text-anchor="middle" font-size="13" font-weight="700" fill="#FFFFFF">roles</text>
+  <text x="56"  y="328" font-size="10" fill="#94A3B8">🔑 id</text>
+  <text x="56"  y="346" font-size="10" fill="#FFFFFF">name · display_name</text>
+  <text x="56"  y="364" font-size="10" fill="#94A3B8">scope · level (0-100)</text>
+  <text x="56"  y="382" font-size="10" fill="#94A3B8">description</text>
+  <line x1="40" y1="338" x2="260" y2="338" stroke="#7C3AED30" stroke-width="1"/>
+  <line x1="40" y1="356" x2="260" y2="356" stroke="#7C3AED30" stroke-width="1"/>
+  <line x1="40" y1="374" x2="260" y2="374" stroke="#7C3AED30" stroke-width="1"/>
+
+  <!-- ── user_roles (x=330, y=55, w=220, h=125) — pivot, yellow ── -->
+  <rect x="330" y="55" width="220" height="125" rx="8" fill="#0F172A" stroke="#F59E0B" stroke-width="2"/>
+  <rect x="330" y="55" width="220" height="34" rx="8" fill="#F59E0B40"/>
+  <rect x="330" y="81" width="220" height="8" fill="#F59E0B40"/>
+  <text x="440" y="77" text-anchor="middle" font-size="13" font-weight="700" fill="#F59E0B">user_roles</text>
+  <text x="346" y="103" font-size="10" fill="#94A3B8">🔑 id</text>
+  <text x="346" y="121" font-size="10" fill="#FFFFFF">user_id  →  users</text>
+  <text x="346" y="139" font-size="10" fill="#FFFFFF">role_id  →  roles</text>
+  <text x="346" y="157" font-size="10" fill="#94A3B8">store_id (nullable)</text>
+  <line x1="330" y1="113" x2="550" y2="113" stroke="#F59E0B30" stroke-width="1"/>
+  <line x1="330" y1="131" x2="550" y2="131" stroke="#F59E0B30" stroke-width="1"/>
+  <line x1="330" y1="149" x2="550" y2="149" stroke="#F59E0B30" stroke-width="1"/>
+
+  <!-- ── user_stores (x=330, y=240, w=220, h=105) — pivot, yellow ── -->
+  <rect x="330" y="240" width="220" height="105" rx="8" fill="#0F172A" stroke="#F59E0B" stroke-width="2"/>
+  <rect x="330" y="240" width="220" height="34" rx="8" fill="#F59E0B40"/>
+  <rect x="330" y="266" width="220" height="8" fill="#F59E0B40"/>
+  <text x="440" y="262" text-anchor="middle" font-size="13" font-weight="700" fill="#F59E0B">user_stores</text>
+  <text x="346" y="288" font-size="10" fill="#94A3B8">🔑 id</text>
+  <text x="346" y="306" font-size="10" fill="#FFFFFF">user_id  →  users</text>
+  <text x="346" y="324" font-size="10" fill="#FFFFFF">store_id  →  stores</text>
+  <line x1="330" y1="298" x2="550" y2="298" stroke="#F59E0B30" stroke-width="1"/>
+  <line x1="330" y1="316" x2="550" y2="316" stroke="#F59E0B30" stroke-width="1"/>
+
+  <!-- ── stores (x=620, y=120, w=220, h=165) ── -->
+  <rect x="620" y="120" width="220" height="165" rx="8" fill="#0F172A" stroke="#7C3AED" stroke-width="2"/>
+  <rect x="620" y="120" width="220" height="34" rx="8" fill="#7C3AED"/>
+  <rect x="620" y="146" width="220" height="8" fill="#7C3AED"/>
+  <text x="730" y="142" text-anchor="middle" font-size="13" font-weight="700" fill="#FFFFFF">stores</text>
+  <text x="636" y="168" font-size="10" fill="#94A3B8">🔑 id (subdomain)</text>
+  <text x="636" y="186" font-size="10" fill="#FFFFFF">name · subdomain</text>
+  <text x="636" y="204" font-size="10" fill="#94A3B8">plan_id · payment_status</text>
+  <text x="636" y="222" font-size="10" fill="#FFFFFF">is_active · settings (JSON)</text>
+  <text x="636" y="240" font-size="10" fill="#94A3B8">trial_ends_at · created_at</text>
+  <line x1="620" y1="178" x2="840" y2="178" stroke="#7C3AED30" stroke-width="1"/>
+  <line x1="620" y1="196" x2="840" y2="196" stroke="#7C3AED30" stroke-width="1"/>
+  <line x1="620" y1="214" x2="840" y2="214" stroke="#7C3AED30" stroke-width="1"/>
+  <line x1="620" y1="232" x2="840" y2="232" stroke="#7C3AED30" stroke-width="1"/>
+
+  <!-- ── products (x=910, y=55, w=220, h=145) ── -->
+  <rect x="910" y="55" width="220" height="145" rx="8" fill="#0F172A" stroke="#7C3AED" stroke-width="2"/>
+  <rect x="910" y="55" width="220" height="34" rx="8" fill="#7C3AED"/>
+  <rect x="910" y="81" width="220" height="8" fill="#7C3AED"/>
+  <text x="1020" y="77" text-anchor="middle" font-size="13" font-weight="700" fill="#FFFFFF">products</text>
+  <text x="926"  y="103" font-size="10" fill="#94A3B8">🔑 id</text>
+  <text x="926"  y="121" font-size="10" fill="#FFFFFF">store_id  →  stores</text>
+  <text x="926"  y="139" font-size="10" fill="#FFFFFF">name · description</text>
+  <text x="926"  y="157" font-size="10" fill="#94A3B8">price · stock · category_id</text>
+  <text x="926"  y="175" font-size="10" fill="#94A3B8">images (JSON) · is_active</text>
+  <line x1="910" y1="113" x2="1130" y2="113" stroke="#7C3AED30" stroke-width="1"/>
+  <line x1="910" y1="131" x2="1130" y2="131" stroke="#7C3AED30" stroke-width="1"/>
+  <line x1="910" y1="149" x2="1130" y2="149" stroke="#7C3AED30" stroke-width="1"/>
+  <line x1="910" y1="167" x2="1130" y2="167" stroke="#7C3AED30" stroke-width="1"/>
+
+  <!-- ── customers (x=620, y=360, w=220, h=145) ── -->
+  <rect x="620" y="360" width="220" height="145" rx="8" fill="#0F172A" stroke="#7C3AED" stroke-width="2"/>
+  <rect x="620" y="360" width="220" height="34" rx="8" fill="#7C3AED"/>
+  <rect x="620" y="386" width="220" height="8" fill="#7C3AED"/>
+  <text x="730" y="382" text-anchor="middle" font-size="13" font-weight="700" fill="#FFFFFF">customers</text>
+  <text x="636" y="408" font-size="10" fill="#94A3B8">🔑 id</text>
+  <text x="636" y="426" font-size="10" fill="#FFFFFF">store_id  →  stores</text>
+  <text x="636" y="444" font-size="10" fill="#FFFFFF">email · first_name · last_name</text>
+  <text x="636" y="462" font-size="10" fill="#94A3B8">phone · address (JSON)</text>
+  <text x="636" y="480" font-size="10" fill="#94A3B8">created_at</text>
+  <line x1="620" y1="418" x2="840" y2="418" stroke="#7C3AED30" stroke-width="1"/>
+  <line x1="620" y1="436" x2="840" y2="436" stroke="#7C3AED30" stroke-width="1"/>
+  <line x1="620" y1="454" x2="840" y2="454" stroke="#7C3AED30" stroke-width="1"/>
+  <line x1="620" y1="472" x2="840" y2="472" stroke="#7C3AED30" stroke-width="1"/>
+
+  <!-- ── orders (x=910, y=300, w=220, h=165) ── -->
+  <rect x="910" y="300" width="220" height="165" rx="8" fill="#0F172A" stroke="#7C3AED" stroke-width="2"/>
+  <rect x="910" y="300" width="220" height="34" rx="8" fill="#7C3AED"/>
+  <rect x="910" y="326" width="220" height="8" fill="#7C3AED"/>
+  <text x="1020" y="322" text-anchor="middle" font-size="13" font-weight="700" fill="#FFFFFF">orders</text>
+  <text x="926"  y="348" font-size="10" fill="#94A3B8">🔑 id</text>
+  <text x="926"  y="366" font-size="10" fill="#FFFFFF">store_id  →  stores</text>
+  <text x="926"  y="384" font-size="10" fill="#FFFFFF">customer_id  →  customers</text>
+  <text x="926"  y="402" font-size="10" fill="#94A3B8">total · subtotal · tax</text>
+  <text x="926"  y="420" font-size="10" fill="#94A3B8">status · payment_status</text>
+  <text x="926"  y="438" font-size="10" fill="#94A3B8">shipping_address (JSON)</text>
+  <line x1="910" y1="358" x2="1130" y2="358" stroke="#7C3AED30" stroke-width="1"/>
+  <line x1="910" y1="376" x2="1130" y2="376" stroke="#7C3AED30" stroke-width="1"/>
+  <line x1="910" y1="394" x2="1130" y2="394" stroke="#7C3AED30" stroke-width="1"/>
+  <line x1="910" y1="412" x2="1130" y2="412" stroke="#7C3AED30" stroke-width="1"/>
+  <line x1="910" y1="430" x2="1130" y2="430" stroke="#7C3AED30" stroke-width="1"/>
+
+  <!-- ── order_items (x=1180, y=280, w=200, h=145) ── -->
+  <rect x="1180" y="280" width="200" height="145" rx="8" fill="#0F172A" stroke="#7C3AED" stroke-width="2"/>
+  <rect x="1180" y="280" width="200" height="34" rx="8" fill="#7C3AED"/>
+  <rect x="1180" y="306" width="200" height="8" fill="#7C3AED"/>
+  <text x="1280" y="302" text-anchor="middle" font-size="13" font-weight="700" fill="#FFFFFF">order_items</text>
+  <text x="1196"  y="328" font-size="10" fill="#94A3B8">🔑 id</text>
+  <text x="1196"  y="346" font-size="10" fill="#FFFFFF">order_id  →  orders</text>
+  <text x="1196"  y="364" font-size="10" fill="#FFFFFF">product_id  →  products</text>
+  <text x="1196"  y="382" font-size="10" fill="#94A3B8">quantity</text>
+  <text x="1196"  y="400" font-size="10" fill="#94A3B8">unit_price · subtotal</text>
+  <line x1="1180" y1="338" x2="1380" y2="338" stroke="#7C3AED30" stroke-width="1"/>
+  <line x1="1180" y1="356" x2="1380" y2="356" stroke="#7C3AED30" stroke-width="1"/>
+  <line x1="1180" y1="374" x2="1380" y2="374" stroke="#7C3AED30" stroke-width="1"/>
+  <line x1="1180" y1="392" x2="1380" y2="392" stroke="#7C3AED30" stroke-width="1"/>
+
+  <!-- ── invoices (x=1180, y=490, w=200, h=125) ── -->
+  <rect x="1180" y="490" width="200" height="125" rx="8" fill="#0F172A" stroke="#7C3AED" stroke-width="2"/>
+  <rect x="1180" y="490" width="200" height="34" rx="8" fill="#7C3AED"/>
+  <rect x="1180" y="516" width="200" height="8" fill="#7C3AED"/>
+  <text x="1280" y="512" text-anchor="middle" font-size="13" font-weight="700" fill="#FFFFFF">invoices</text>
+  <text x="1196"  y="538" font-size="10" fill="#94A3B8">🔑 id</text>
+  <text x="1196"  y="556" font-size="10" fill="#FFFFFF">order_id  →  orders</text>
+  <text x="1196"  y="574" font-size="10" fill="#94A3B8">number · series</text>
+  <text x="1196"  y="592" font-size="10" fill="#94A3B8">pdf_url · issued_at</text>
+  <line x1="1180" y1="548" x2="1380" y2="548" stroke="#7C3AED30" stroke-width="1"/>
+  <line x1="1180" y1="566" x2="1380" y2="566" stroke="#7C3AED30" stroke-width="1"/>
+  <line x1="1180" y1="584" x2="1380" y2="584" stroke="#7C3AED30" stroke-width="1"/>
+
+  <!-- ════════ RELATIONSHIPS ════════ -->
+
+  <!-- users → user_roles (1:N) horizontal right -->
+  <line x1="260" y1="100" x2="330" y2="100" stroke="#F59E0B" stroke-width="1.5" stroke-dasharray="4 2" marker-end="url(#rel)"/>
+  <text x="292" y="94" text-anchor="middle" font-size="9" fill="#F59E0B">1:N</text>
+
+  <!-- users → user_stores (1:N) diagonal -->
+  <line x1="260" y1="138" x2="330" y2="280" stroke="#F59E0B" stroke-width="1.5" stroke-dasharray="4 2" marker-end="url(#rel)"/>
+  <text x="285" y="210" font-size="9" fill="#F59E0B">1:N</text>
+
+  <!-- user_roles → roles (N:1) horizontal right, zigzag down -->
+  <path d="M440 180 L440 240 L440 280" stroke="#94A3B8" stroke-width="1.5" stroke-dasharray="4 2" fill="none" marker-end="url(#rel)"/>
+  <text x="448" y="235" font-size="9" fill="#94A3B8">N:1</text>
+
+  <!-- user_stores → stores (N:1) horizontal right -->
+  <line x1="550" y1="295" x2="620" y2="202" stroke="#94A3B8" stroke-width="1.5" stroke-dasharray="4 2" marker-end="url(#rel)"/>
+  <text x="572" y="242" font-size="9" fill="#94A3B8">N:1</text>
+
+  <!-- stores → products (1:N) horizontal right -->
+  <line x1="840" y1="160" x2="910" y2="128" stroke="#94A3B8" stroke-width="1.5" marker-end="url(#rel)"/>
+  <text x="868" y="137" font-size="9" fill="#94A3B8">1:N</text>
+
+  <!-- stores → customers (1:N) vertical down -->
+  <line x1="730" y1="285" x2="730" y2="360" stroke="#94A3B8" stroke-width="1.5" marker-end="url(#rel)"/>
+  <text x="738" y="328" font-size="9" fill="#94A3B8">1:N</text>
+
+  <!-- stores → orders (1:N) diagonal -->
+  <line x1="840" y1="220" x2="910" y2="340" stroke="#94A3B8" stroke-width="1.5" marker-end="url(#rel)"/>
+  <text x="862" y="276" font-size="9" fill="#94A3B8">1:N</text>
+
+  <!-- customers → orders (1:N) horizontal right -->
+  <line x1="840" y1="430" x2="910" y2="400" stroke="#94A3B8" stroke-width="1.5" marker-end="url(#rel)"/>
+  <text x="862" y="410" font-size="9" fill="#94A3B8">1:N</text>
+
+  <!-- orders → order_items (1:N) horizontal right -->
+  <line x1="1130" y1="360" x2="1180" y2="355" stroke="#94A3B8" stroke-width="1.5" marker-end="url(#rel)"/>
+  <text x="1148" y="350" font-size="9" fill="#94A3B8">1:N</text>
+
+  <!-- orders → invoices (1:1) right-down -->
+  <line x1="1130" y1="430" x2="1180" y2="535" stroke="#94A3B8" stroke-width="1.5" marker-end="url(#rel)"/>
+  <text x="1148" y="490" font-size="9" fill="#94A3B8">1:1</text>
+
+  <!-- Legend -->
+  <rect x="40" y="650" width="520" height="90" rx="8" fill="#0F172A" stroke="#7C3AED40" stroke-width="1"/>
+  <text x="60"  y="674" font-size="11" font-weight="700" fill="#FFFFFF">Leyenda</text>
+  <rect x="60"  y="682" width="16" height="16" rx="3" fill="#0F172A" stroke="#7C3AED" stroke-width="2"/>
+  <text x="82"  y="694" font-size="10" fill="#94A3B8">Tabla principal (clave primaria + campos)</text>
+  <rect x="60"  y="702" width="16" height="16" rx="3" fill="#0F172A" stroke="#F59E0B" stroke-width="2"/>
+  <text x="82"  y="714" font-size="10" fill="#94A3B8">Tabla pivot N:M (relación muchos a muchos)</text>
+  <line x1="60" y1="730" x2="90" y2="730" stroke="#94A3B8" stroke-width="1.5" marker-end="url(#rel)"/>
+  <text x="98"  y="734" font-size="10" fill="#94A3B8">Relación con cardinalidad</text>
+  <line x1="60" y1="747" x2="90" y2="747" stroke="#F59E0B" stroke-width="1.5" stroke-dasharray="4 2" marker-end="url(#rel)"/>
+  <text x="98"  y="751" font-size="10" fill="#94A3B8">Relación a través de pivot</text>
+
+  <!-- Note about more tables -->
+  <rect x="600" y="670" width="760" height="60" rx="8" fill="#0F172A" stroke="#06B6D440" stroke-width="1"/>
+  <text x="980" y="693" text-anchor="middle" font-size="11" font-weight="700" fill="#FFFFFF">Tablas adicionales en el sistema</text>
+  <text x="980" y="712" text-anchor="middle" font-size="10" fill="#94A3B8">categories · product_images · discounts · support_tickets · certifications</text>
+  <text x="980" y="728" text-anchor="middle" font-size="10" fill="#94A3B8">audit_logs · store_notes · sessions · refresh_tokens · leads · user_notes</text>
+
+  <!-- Footer -->
+  <text x="700" y="858" text-anchor="middle" font-size="10" fill="#374151">NeonHub — Trabajo Final de Grado Superior en Desarrollo de Aplicaciones Multiplataforma · 2025-2026</text>
+</svg>

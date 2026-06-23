@@ -1,0 +1,139 @@
+{
+  "name": "FINAL - Workflow 4: Reporte Ejecutivo Diario",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 8 * * *"
+            }
+          ]
+        }
+      },
+      "name": "Cron (Diario 08:00)",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1,
+      "position": [
+        100,
+        300
+      ],
+      "id": "urqwx5"
+    },
+    {
+      "parameters": {
+        "url": "{{$env[\"NEONHUB_API_BASE\"]}}/api/admin/metrics/daily",
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer {{$env[\"NEONHUB_API_KEY\"]}}"
+            },
+            {
+              "name": "X-NeonHub-Api-Key",
+              "value": "{{$env[\"NEONHUB_STORE_API_KEY\"]}}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "name": "Fetch KPIs",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 1,
+      "position": [
+        300,
+        300
+      ],
+      "id": "we0ixo"
+    },
+    {
+      "parameters": {
+        "functionCode": "let html = `<h1>Reporte Diario SaaS NeonHub</h1>`;\nhtml += `<p>Nuevos Tenants: ${$input.item.json.new_tenants}</p>`;\nhtml += `<p>MRR Estimado: $${$input.item.json.mrr}</p>`;\nhtml += `<p>Provisioning Success Rate: ${$input.item.json.provisioning_rate}%</p>`;\nreturn [{json: {reportHtml: html, summaryText: `SaaS Daily: ${$input.item.json.new_tenants} tenants, $${$input.item.json.mrr} MRR`}}];"
+      },
+      "name": "Generate Report Markdown",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [
+        500,
+        300
+      ],
+      "id": "bw9hm"
+    },
+    {
+      "parameters": {
+        "fromEmail": "reports@neonhub.es",
+        "toEmail": "ceo@neonhub.es",
+        "subject": "Reporte Ejecutivo Diario NeonHub",
+        "text": "={{$json.reportHtml}}",
+        "options": {}
+      },
+      "name": "Email to CEO",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 1,
+      "position": [
+        700,
+        150
+      ],
+      "id": "oy3da"
+    },
+    {
+      "parameters": {
+        "channel": "C03EXECUTIVE",
+        "text": "={{$json.summaryText}}"
+      },
+      "name": "Slack Executive",
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 1,
+      "position": [
+        700,
+        400
+      ],
+      "id": "ur74om"
+    }
+  ],
+  "connections": {
+    "Cron (Diario 08:00)": {
+      "main": [
+        [
+          {
+            "node": "Fetch KPIs",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch KPIs": {
+      "main": [
+        [
+          {
+            "node": "Generate Report Markdown",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate Report Markdown": {
+      "main": [
+        [
+          {
+            "node": "Email to CEO",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Slack Executive",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {},
+  "meta": {},
+  "id": "lr2yrr"
+}

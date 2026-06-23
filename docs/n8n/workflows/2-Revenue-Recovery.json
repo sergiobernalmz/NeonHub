@@ -1,0 +1,105 @@
+{
+  "name": "FINAL - Workflow 2: Revenue Recovery (Pago Fallido)",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "stripe-webhook-failed",
+        "options": {}
+      },
+      "name": "Stripe Webhook (invoice.payment_failed)",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [
+        100,
+        300
+      ],
+      "id": "zti9ri"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{$json.body.type}}",
+              "value2": "invoice.payment_failed"
+            }
+          ]
+        }
+      },
+      "name": "Verify Failed Event",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [
+        300,
+        300
+      ],
+      "id": "b8191"
+    },
+    {
+      "parameters": {
+        "fromEmail": "billing@neonhub.es",
+        "toEmail": "={{$node[\"Stripe Webhook (invoice.payment_failed)\"].json[\"body\"][\"data\"][\"object\"][\"customer_email\"]}}",
+        "subject": "⚠️ Acción Requerida: Problema con tu pago en NeonHub",
+        "text": "=Hola,\n\nHemos detectado un problema al procesar el pago de tu suscripción.\n\nPor favor, actualiza tu método de pago lo antes posible para evitar la interrupción de tu servicio en NeonHub.\n\nPuedes revisar y pagar tu factura aquí: {{$node[\"Stripe Webhook (invoice.payment_failed)\"].json[\"body\"][\"data\"][\"object\"][\"hosted_invoice_url\"]}}\n\nSi necesitas ayuda, responde a este correo.\n\nEl equipo de Facturación de NeonHub.",
+        "html": "<!DOCTYPE html><html lang=\"es\"><head><meta charset=\"UTF-8\"><style>body{margin:0;padding:0;background-color:#0d1117;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;color:#e6edf3}.w{width:100%;background-color:#0d1117;padding:40px 0}.m{background-color:#161b22;margin:0 auto;width:100%;max-width:600px;border-radius:12px;border:1px solid #30363d;border-top:4px solid #ff4444;overflow:hidden}.h{background:#161b22;padding:30px;text-align:center;border-bottom:1px solid #30363d}.n{color:#ff4444;font-size:24px;font-weight:800;margin:0;letter-spacing:1px}.c{padding:40px 30px}h1{font-size:22px;color:#ffffff;margin-top:0;margin-bottom:20px}p{line-height:1.6;font-size:16px;color:#8b949e;margin-bottom:20px}.btn{display:inline-block;background-color:#ff4444;color:#ffffff!important;text-decoration:none;padding:12px 24px;border-radius:6px;font-weight:600;margin:10px 0}.cd{background-color:#0d1117;border:1px solid #30363d;border-radius:8px;padding:20px;margin:30px 0}.ct{font-size:12px;text-transform:uppercase;letter-spacing:1px;color:#8b949e;margin:0 0 10px 0}.val{color:#e6edf3;font-weight:600;margin:0}.f{text-align:center;padding:30px;font-size:14px;color:#484f58;border-top:1px solid #30363d}</style></head><body><div class=\"w\"><div class=\"m\"><div class=\"h\"><h2 class=\"n\">NeonHub - Facturación</h2></div><div class=\"c\"><h1>⚠️ Problema con tu último pago</h1><p>Hola,</p><p>Te escribimos porque hemos detectado un problema al intentar procesar el pago de tu última factura. Para garantizar que tu escaparate y panel de control sigan funcionando sin interrupciones, necesitamos que actualices tu método de pago.</p><div class=\"cd\"><p class=\"ct\">Detalles del Cargo</p><p class=\"val\">Plan: {{$node[\"Stripe Webhook (invoice.payment_failed)\"].json[\"body\"][\"data\"][\"object\"][\"lines\"][\"data\"][0][\"description\"]}}</p></div><center><a href=\"{{$node[\"Stripe Webhook (invoice.payment_failed)\"].json[\"body\"][\"data\"][\"object\"][\"hosted_invoice_url\"]}}\" class=\"btn\">Revisar y Pagar Factura</a></center><p style=\"margin-top: 30px;\">Si crees que esto es un error o necesitas asistencia, no dudes en responder directamente a este correo.</p><p style=\"color: #8b949e; font-style: italic; margin-top: 30px;\">Atentamente,<br><strong>Equipo de Facturación NeonHub</strong></p></div><div class=\"f\">© 2026 NeonHub. Todos los derechos reservados.</div></div></div></body></html>",
+        "options": {}
+      },
+      "name": "Email Recovery",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 1,
+      "position": [
+        500,
+        150
+      ],
+      "id": "a4p3ew"
+    },
+    {
+      "parameters": {
+        "channel": "C01CHURNNNN",
+        "text": "🚨 *¡ALERTA DE COBRO FALLIDO / RIESGO DE CHURN!* 🚨\n\nHa fallado el cobro automático de una suscripción. Se ha enviado un email automático de recuperación al cliente.\n\n⚠️ *Detalles del Impago:*\n• *Cliente (Email):* `{{$node[\"Stripe Webhook (invoice.payment_failed)\"].json[\"body\"][\"data\"][\"object\"][\"customer_email\"]}}`\n• *Suscripción afectada:* `{{$node[\"Stripe Webhook (invoice.payment_failed)\"].json[\"body\"][\"data\"][\"object\"][\"lines\"][\"data\"][0][\"description\"]}}`\n\n🔗 `<{{$node[\"Stripe Webhook (invoice.payment_failed)\"].json[\"body\"][\"data\"][\"object\"][\"hosted_invoice_url\"]}}|Ver Factura en Stripe>`"
+      },
+      "name": "Slack Churn Alert",
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 1,
+      "position": [
+        500,
+        400
+      ],
+      "id": "ids5v"
+    }
+  ],
+  "connections": {
+    "Stripe Webhook (invoice.payment_failed)": {
+      "main": [
+        [
+          {
+            "node": "Verify Failed Event",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Verify Failed Event": {
+      "main": [
+        [
+          {
+            "node": "Email Recovery",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Slack Churn Alert",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {},
+  "meta": {},
+  "id": "jgoavm"
+}

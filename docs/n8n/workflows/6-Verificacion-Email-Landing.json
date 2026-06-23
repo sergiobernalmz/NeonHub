@@ -1,0 +1,204 @@
+{
+  "name": "Workflow 6: Verificación de Email - Landing Page",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "verify-email-landing",
+        "options": {}
+      },
+      "name": "Webhook verify-email-landing",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [100, 300],
+      "id": "vwh01"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{$json[\"body\"][\"token\"]}}",
+              "operation": "isNotEmpty"
+            }
+          ]
+        }
+      },
+      "name": "Token presente?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [300, 300],
+      "id": "vif01"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{$env[\"NEONHUB_API_BASE\"]}}/api/auth/verify-email",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "token",
+              "value": "={{$node[\"Webhook verify-email-landing\"].json[\"body\"][\"token\"]}}"
+            }
+          ]
+        },
+        "options": {
+          "ignoreResponseCode": true
+        }
+      },
+      "name": "POST /api/auth/verify-email",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 1,
+      "position": [500, 180],
+      "id": "vhttp1"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "boolean": [
+            {
+              "value1": "={{$json[\"success\"]}}",
+              "value2": true
+            }
+          ]
+        }
+      },
+      "name": "Verificación exitosa?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [700, 180],
+      "id": "vif02"
+    },
+    {
+      "parameters": {
+        "fromEmail": "noreply@neonhub.es",
+        "toEmail": "={{$node[\"Webhook verify-email-landing\"].json[\"body\"][\"email\"]}}",
+        "subject": "✅ Tu correo ha sido verificado - NeonHub",
+        "html": "<div style=\"font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;\"><h2 style=\"color: #00f0ff;\">¡Correo verificado!</h2><p>Hola {{$node[\"Webhook verify-email-landing\"].json[\"body\"][\"username\"]}},</p><p>Tu correo electrónico ha sido verificado correctamente. Ya puedes iniciar sesión en NeonHub.</p><div style=\"text-align: center; margin: 30px 0;\"><a href=\"{{$env[\"NEONHUB_FRONTEND_URL\"]}}/login\" style=\"background-color: #00f0ff; color: #000; padding: 12px 24px; text-decoration: none; border-radius: 4px; font-weight: bold;\">Iniciar sesión</a></div><p>Saludos,<br>El equipo de NeonHub</p></div>",
+        "options": {}
+      },
+      "name": "Email: Verificación correcta",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 1,
+      "position": [900, 60],
+      "id": "vmail1"
+    },
+    {
+      "parameters": {
+        "values": {
+          "string": [
+            {
+              "name": "resultado",
+              "value": "token_invalido_o_ya_usado"
+            },
+            {
+              "name": "motivo",
+              "value": "={{$json[\"message\"]}}"
+            },
+            {
+              "name": "email",
+              "value": "={{$node[\"Webhook verify-email-landing\"].json[\"body\"][\"email\"]}}"
+            },
+            {
+              "name": "token_parcial",
+              "value": "={{$node[\"Webhook verify-email-landing\"].json[\"body\"][\"token\"].substring(0, 8)}}..."
+            }
+          ]
+        },
+        "options": {}
+      },
+      "name": "Log: Token inválido o ya usado",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 1,
+      "position": [900, 320],
+      "id": "vset01"
+    },
+    {
+      "parameters": {
+        "values": {
+          "string": [
+            {
+              "name": "resultado",
+              "value": "webhook_sin_token"
+            },
+            {
+              "name": "email",
+              "value": "={{$json[\"body\"][\"email\"] || \"desconocido\"}}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "name": "Log: Sin token",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 1,
+      "position": [500, 440],
+      "id": "vset02"
+    }
+  ],
+  "connections": {
+    "Webhook verify-email-landing": {
+      "main": [
+        [
+          {
+            "node": "Token presente?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Token presente?": {
+      "main": [
+        [
+          {
+            "node": "POST /api/auth/verify-email",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Log: Sin token",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "POST /api/auth/verify-email": {
+      "main": [
+        [
+          {
+            "node": "Verificación exitosa?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Verificación exitosa?": {
+      "main": [
+        [
+          {
+            "node": "Email: Verificación correcta",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Log: Token inválido o ya usado",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {},
+  "meta": {},
+  "id": "vemail6"
+}

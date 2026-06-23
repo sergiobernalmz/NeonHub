@@ -1,0 +1,314 @@
+---
+import Layout from '../layouts/Layout.astro';
+import Navbar from '../components/Navbar.jsx';
+import Footer from '../components/Footer.astro';
+import { findUserByEmail, createUser } from '../lib/db';
+import { sendVerificationEmail } from '../lib/n8n';
+import { createSession, hashPassword, validateSession } from '../lib/auth';
+
+let registerError = '';
+
+if (Astro.request.method === 'POST') {
+  const data = await Astro.request.formData();
+  const username = (data.get('username') as string || '').trim();
+  const email = (data.get('email') as string || '').trim().toLowerCase();
+  const password = data.get('password') as string;
+  const firstName = (data.get('first_name') as string || '').trim();
+  const lastName  = (data.get('last_name') as string || '').trim();
+
+  // validación en el servidor
+  if (!username || username.length < 3 || username.length > 30 || !/^[a-zA-Z0-9_]+$/.test(username)) {
+    registerError = 'El nombre de usuario debe tener entre 3 y 30 caracteres (letras, números y _).';
+  } else if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    registerError = 'Introduce un email válido.';
+  } else if (!password || password.length < 8) {
+    registerError = 'La contraseña debe tener al menos 8 caracteres.';
+  } else if (!/[A-Z]/.test(password) || !/[0-9]/.test(password) || !/[^a-zA-Z0-9]/.test(password)) {
+    registerError = 'La contraseña debe incluir mayúscula, número y carácter especial.';
+  } else {
+    try {
+      const existing = await findUserByEmail(email);
+      if (existing) {
+        registerError = 'Este email ya está registrado. ¿Quieres iniciar sesión?';
+      } else {
+        const id = crypto.randomUUID();
+        const { randomBytes } = await import('crypto');
+        const verificationToken = randomBytes(32).toString('hex');
+        const tokenExpires = Math.floor(Date.now() / 1000) + (24 * 60 * 60);
+        const hashedPassword = await hashPassword(password);
+        await createUser({ id, username, email, password: hashedPassword, verification_token: verificationToken, verification_token_expires: tokenExpires });
+        await sendVerificationEmail({ email, username, token: verificationToken });
+
+        // sincronizamos la contraseña en neonhub_db si el usuario ya existe allí (fire-and-forget)
+        const BACKEND = (import.meta.env.PUBLIC_API_BASE_URL || 'http://127.0.0.1:4000/api').replace(/\/$/, '');
+        fetch(`${BACKEND}/auth/sync-password`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password }),
+        }).catch(err => console.error('[register] sync-password fetch failed for', email, ':', err?.message));
+
+        return Astro.redirect(`/register?success=true&email=${encodeURIComponent(email)}`);
+      }
+    } catch (err) {
+      registerError = 'Error inesperado. Inténtalo de nuevo o contacta con soporte.';
+    }
+  }
+}
+
+const success = Astro.url.searchParams.get('success');
+const sessionId = Astro.cookies.get('app_auth_token')?.value;
+const session = sessionId ? await validateSession(sessionId) : null;
+const user = session ? session.user : null;
+
+if (user) {
+  return Astro.redirect(user.role === 'admin' ? '/admin' : '/dashboard');
+}
+---
+
+<Layout
+  title="Crear cuenta gratis — NeonHub"
+  description="Crea tu cuenta en NeonHub y lanza tu tienda online en minutos. Sin permanencia, cancela cuando quieras."
+  canonical="https://neonhub.es/register"
+>
+  <Navbar client:load user={user} />
+  <main class="min-h-screen pt-32 pb-12 px-6 bg-white dark:bg-slate-950 flex items-center justify-center">
+    <div class="w-full max-w-md p-8 rounded-2xl bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 shadow-sm dark:shadow-none backdrop-blur-sm">
+        {success ? (
+            <div class="text-center">
+                <div class="w-20 h-20 bg-green-100 dark:bg-green-500/20 text-green-600 dark:text-green-400 rounded-full flex items-center justify-center mx-auto mb-6">
+                    <svg class="w-10 h-10" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                    </svg>
+                </div>
+                <h1 class="text-3xl font-bold text-gray-900 dark:text-white mb-4">¡Registro Exitoso!</h1>
+                <p class="text-gray-600 dark:text-slate-300 mb-8 leading-relaxed">
+                    Hemos enviado un correo a <span class="text-gray-900 dark:text-white font-semibold flex items-center justify-center mt-2 p-2 bg-gray-100 dark:bg-black/40 rounded-lg">{Astro.url.searchParams.get('email') || 'tu dirección'}</span>
+                    <br/><br/>
+                    Por favor, revisa tu bandeja de entrada (y la carpeta de spam) y haz clic en el enlace para verificar tu cuenta.
+                </p>
+                <a href="/login" class="inline-block w-full py-3 bg-gray-100 dark:bg-white/10 hover:bg-gray-200 dark:hover:bg-white/20 text-gray-900 dark:text-white font-bold rounded-lg transition-colors border border-gray-200 dark:border-white/5">
+                    Ir al inicio de sesión
+                </a>
+            </div>
+        ) : (
+            <>
+                <h1 class="text-3xl font-bold text-gray-900 dark:text-white mb-8 text-center">Crear Cuenta</h1>
+                {registerError && (
+                  <div class="mb-4 p-3 rounded-lg bg-red-50 dark:bg-red-500/10 border border-red-300 dark:border-red-500/40 text-red-600 dark:text-red-300 text-sm text-center">
+                    {registerError}
+                    {registerError.includes('iniciar sesión') && (
+                      <a href="/login" class="block mt-2 text-violet-600 dark:text-violet-400 hover:text-violet-700 dark:hover:text-violet-300 font-semibold">→ Ir a iniciar sesión</a>
+                    )}
+                  </div>
+                )}
+                <form id="register-form" method="POST" class="space-y-5" novalidate>
+                    <!-- Nombre y apellido opcionales -->
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-2">Nombre</label>
+                            <input type="text" name="first_name" autocomplete="given-name"
+                                class="w-full px-4 py-3 bg-gray-50 dark:bg-white/5 border border-gray-300 dark:border-white/10 rounded-lg text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-slate-400 focus:outline-none focus:border-violet-500 transition-colors"
+                                placeholder="Nombre" />
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-2">Apellido</label>
+                            <input type="text" name="last_name" autocomplete="family-name"
+                                class="w-full px-4 py-3 bg-gray-50 dark:bg-white/5 border border-gray-300 dark:border-white/10 rounded-lg text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-slate-400 focus:outline-none focus:border-violet-500 transition-colors"
+                                placeholder="Apellido" />
+                        </div>
+                    </div>
+                    <!-- Username -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-2">Usuario</label>
+                        <input id="reg-username" type="text" name="username" autocomplete="username"
+                            class="w-full px-4 py-3 bg-gray-50 dark:bg-white/5 border border-gray-300 dark:border-white/10 rounded-lg text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-slate-400 focus:outline-none focus:border-violet-500 transition-colors"
+                            placeholder="3-30 caracteres, sin espacios" />
+                        <p id="err-username" class="mt-1 text-xs text-red-400 hidden"></p>
+                    </div>
+                    <!-- Email -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-2">Email</label>
+                        <input id="reg-email" type="email" name="email" autocomplete="email"
+                            class="w-full px-4 py-3 bg-gray-50 dark:bg-white/5 border border-gray-300 dark:border-white/10 rounded-lg text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-slate-400 focus:outline-none focus:border-violet-500 transition-colors"
+                            placeholder="Email" />
+                        <p id="err-email" class="mt-1 text-xs text-red-400 hidden"></p>
+                    </div>
+                    <!-- Password + strength + requirements -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-2">Contraseña</label>
+                        <div class="relative">
+                            <input id="reg-password" type="password" name="password" autocomplete="new-password"
+                                class="w-full px-4 py-3 pr-12 bg-gray-50 dark:bg-white/5 border border-gray-300 dark:border-white/10 rounded-lg text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-slate-400 focus:outline-none focus:border-violet-500 transition-colors"
+                                placeholder="Mínimo 8 caracteres" />
+                            <button type="button" id="toggle-reg-pwd"
+                                class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-slate-400 hover:text-gray-700 dark:hover:text-white transition-colors">
+                                <svg id="reg-eye-open" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                                <svg id="reg-eye-off" class="w-5 h-5 hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.542-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.542 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"/></svg>
+                            </button>
+                        </div>
+                        <div id="strength-bar-wrap" class="mt-2 hidden">
+                            <div class="bg-gray-200 dark:bg-slate-800" style="border-radius:3px;height:6px;overflow:hidden;">
+                                <div id="strength-fill" style="height:100%;border-radius:3px;transition:width .2s,background .2s;width:0%"></div>
+                            </div>
+                            <div class="flex justify-between mt-1">
+                                <span id="strength-label" class="text-xs"></span>
+                                <span id="strength-bits" class="text-xs text-gray-500 dark:text-slate-500"></span>
+                            </div>
+                        </div>
+                        <!-- Requirements checklist -->
+                        <ul id="pwd-requirements" class="mt-2 space-y-0.5 hidden">
+                            <li id="req-length"    class="flex items-center gap-1.5 text-xs text-gray-500 dark:text-slate-400"><span class="req-icon">○</span> Mínimo 8 caracteres</li>
+                            <li id="req-uppercase" class="flex items-center gap-1.5 text-xs text-gray-500 dark:text-slate-400"><span class="req-icon">○</span> Una letra mayúscula</li>
+                            <li id="req-number"    class="flex items-center gap-1.5 text-xs text-gray-500 dark:text-slate-400"><span class="req-icon">○</span> Un número</li>
+                            <li id="req-special"   class="flex items-center gap-1.5 text-xs text-gray-500 dark:text-slate-400"><span class="req-icon">○</span> Un carácter especial</li>
+                        </ul>
+                        <p id="err-password" class="mt-1 text-xs text-red-400 hidden"></p>
+                    </div>
+                    <!-- Confirm password -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-2">Confirmar contraseña</label>
+                        <div class="relative">
+                            <input id="reg-confirm" type="password" name="confirm_password" autocomplete="new-password"
+                                class="w-full px-4 py-3 pr-12 bg-gray-50 dark:bg-white/5 border border-gray-300 dark:border-white/10 rounded-lg text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-slate-400 focus:outline-none focus:border-violet-500 transition-colors"
+                                placeholder="Repite la contraseña" />
+                            <button type="button" id="toggle-reg-confirm"
+                                class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-slate-400 hover:text-gray-700 dark:hover:text-white transition-colors">
+                                <svg id="conf-eye-open" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                                <svg id="conf-eye-off" class="w-5 h-5 hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.542-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.542 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"/></svg>
+                            </button>
+                        </div>
+                        <p id="err-confirm" class="mt-1 text-xs hidden"></p>
+                    </div>
+                    <button id="reg-submit" type="submit"
+                        class="w-full py-3 bg-violet-600 hover:bg-violet-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold rounded-lg transition-colors">
+                        Registrarse
+                    </button>
+                </form>
+                <p class="mt-4 text-center text-gray-500 dark:text-slate-400 text-sm">
+                    ¿Ya tienes cuenta? <a href="/login" class="text-violet-600 dark:text-violet-400 hover:text-violet-700 dark:hover:text-violet-300">Inicia Sesión</a>
+                </p>
+            </>
+        )}
+    </div>
+  </main>
+  <Footer />
+</Layout>
+
+<script>
+import { calcPasswordEntropy, getPasswordStrength, validatePasswordStrength, validateEmail, validateUsername } from '../utils/validation.js';
+
+const form       = document.getElementById('register-form');
+const inpUser    = document.getElementById('reg-username') as HTMLInputElement;
+const inpEmail   = document.getElementById('reg-email') as HTMLInputElement;
+const inpPass    = document.getElementById('reg-password') as HTMLInputElement;
+const inpConfirm = document.getElementById('reg-confirm') as HTMLInputElement;
+const submitBtn  = document.getElementById('reg-submit') as HTMLButtonElement;
+
+const errUser    = document.getElementById('err-username')!;
+const errEmail   = document.getElementById('err-email')!;
+const errPass    = document.getElementById('err-password')!;
+const errConfirm = document.getElementById('err-confirm')!;
+const barWrap    = document.getElementById('strength-bar-wrap')!;
+const barFill    = document.getElementById('strength-fill') as HTMLElement;
+const barLabel   = document.getElementById('strength-label')!;
+const barBits    = document.getElementById('strength-bits')!;
+const pwdReqWrap = document.getElementById('pwd-requirements')!;
+
+// botones para mostrar/ocultar contraseña
+function wireToggle(btnId: string, inputEl: HTMLInputElement, openId: string, offId: string) {
+  const btn  = document.getElementById(btnId)!;
+  const open = document.getElementById(openId)!;
+  const off  = document.getElementById(offId)!;
+  btn.addEventListener('click', () => {
+    const isText = inputEl.type === 'text';
+    inputEl.type = isText ? 'password' : 'text';
+    open.classList.toggle('hidden', !isText);
+    off.classList.toggle('hidden', isText);
+  });
+}
+wireToggle('toggle-reg-pwd',     inpPass,    'reg-eye-open', 'reg-eye-off');
+wireToggle('toggle-reg-confirm', inpConfirm, 'conf-eye-open', 'conf-eye-off');
+
+function setReq(id: string, ok: boolean) {
+  const li   = document.getElementById(id)!;
+  const icon = li.querySelector('.req-icon')!;
+  icon.textContent = ok ? '✓' : '○';
+  li.style.color = ok ? '#4ade80' : '#94a3b8';
+}
+
+function setError(el: HTMLElement, input: HTMLInputElement, msg: string) {
+  el.textContent = msg;
+  el.classList.toggle('hidden', !msg);
+  input.style.borderColor = msg ? '#ef4444' : (input.value ? '#22c55e' : '');
+}
+
+function updateStrength(password: string) {
+  if (!password) { barWrap.classList.add('hidden'); pwdReqWrap.classList.add('hidden'); return; }
+  barWrap.classList.remove('hidden');
+  pwdReqWrap.classList.remove('hidden');
+  const entropy = calcPasswordEntropy(password);
+  const s = getPasswordStrength(entropy);
+  const width = Math.min((entropy / 128) * 100, 100);
+  barFill.style.width = width + '%';
+  barFill.style.background = s.color;
+  barLabel.textContent = s.label;
+  barLabel.style.color = s.color;
+  barBits.textContent = entropy + ' bits';
+
+  const reqs = validatePasswordStrength(password);
+  setReq('req-length',    reqs.length);
+  setReq('req-uppercase', reqs.uppercase);
+  setReq('req-number',    reqs.number);
+  setReq('req-special',   reqs.special);
+}
+
+function validate() {
+  let ok = true;
+
+  if (inpUser.value && !validateUsername(inpUser.value)) {
+    setError(errUser, inpUser, 'Entre 3 y 30 caracteres, solo letras, números y _');
+    ok = false;
+  } else { setError(errUser, inpUser, ''); }
+
+  if (inpEmail.value && !validateEmail(inpEmail.value)) {
+    setError(errEmail, inpEmail, 'Introduce un email válido');
+    ok = false;
+  } else { setError(errEmail, inpEmail, ''); }
+
+  if (inpPass.value) {
+    const reqs = validatePasswordStrength(inpPass.value);
+    if (!reqs.isValid) {
+      setError(errPass, inpPass, 'La contraseña no cumple todos los requisitos');
+      ok = false;
+    } else { setError(errPass, inpPass, ''); }
+  }
+
+  if (inpConfirm.value) {
+    if (inpConfirm.value !== inpPass.value) {
+      errConfirm.textContent = 'Las contraseñas no coinciden';
+      errConfirm.className = 'mt-1 text-xs text-red-400';
+      inpConfirm.style.borderColor = '#ef4444';
+      ok = false;
+    } else {
+      errConfirm.textContent = '✓ Las contraseñas coinciden';
+      errConfirm.className = 'mt-1 text-xs text-green-400';
+      inpConfirm.style.borderColor = '#22c55e';
+    }
+  }
+
+  const reqs = validatePasswordStrength(inpPass.value);
+  const allFilled = inpUser.value && inpEmail.value && inpPass.value && inpConfirm.value;
+  submitBtn.disabled = !ok || !allFilled || !reqs.isValid || inpConfirm.value !== inpPass.value;
+  return ok;
+}
+
+inpUser.addEventListener('input', validate);
+inpEmail.addEventListener('input', validate);
+inpPass.addEventListener('input', () => { updateStrength(inpPass.value); validate(); });
+inpConfirm.addEventListener('input', validate);
+
+form?.addEventListener('submit', (e) => {
+  const ok = validate();
+  if (!ok) e.preventDefault();
+});
+</script>

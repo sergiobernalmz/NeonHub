@@ -1,0 +1,119 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 500" font-family="system-ui, -apple-system, sans-serif">
+  <defs>
+    <marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M0 1 L10 5 L0 9 z" fill="#94A3B8"/>
+    </marker>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1600" height="500" fill="#0A0A0F"/>
+
+  <!-- Title -->
+  <text x="800" y="36" text-anchor="middle" font-size="20" font-weight="700" fill="#FFFFFF">Ciclo de Vida de un Pedido — NeonHub</text>
+
+  <!-- ── CONNECTING LINE ── -->
+  <!-- Line segment between circles (drawn behind them) -->
+  <!-- cx values: 133, 400, 667, 934, 1200, 1467, cy=110 -->
+  <line x1="133"  y1="110" x2="1467" y2="110" stroke="#7C3AED40" stroke-width="3"/>
+  <!-- Progress markers -->
+  <line x1="168"  y1="110" x2="365"  y2="110" stroke="#7C3AED"   stroke-width="3"/>
+  <line x1="435"  y1="110" x2="632"  y2="110" stroke="#7C3AED"   stroke-width="3"/>
+  <line x1="702"  y1="110" x2="899"  y2="110" stroke="#7C3AED"   stroke-width="3"/>
+  <line x1="969"  y1="110" x2="1165" y2="110" stroke="#7C3AED"   stroke-width="3"/>
+  <line x1="1235" y1="110" x2="1432" y2="110" stroke="#7C3AED"   stroke-width="3"/>
+
+  <!-- ── STEP 1: Checkout Stripe · cx=133 ── -->
+  <circle cx="133" cy="110" r="36" fill="#7C3AED" stroke="#7C3AED" stroke-width="2"/>
+  <text x="133" y="115" text-anchor="middle" font-size="22" font-weight="900" fill="#FFFFFF">1</text>
+
+  <text x="133" y="164" text-anchor="middle" font-size="13" font-weight="700" fill="#FFFFFF">Checkout</text>
+  <text x="133" y="180" text-anchor="middle" font-size="13" font-weight="700" fill="#FFFFFF">Stripe</text>
+
+  <rect x="30" y="200" width="206" height="120" rx="8" fill="#0F172A" stroke="#7C3AED50" stroke-width="1"/>
+  <text x="133" y="224" text-anchor="middle" font-size="11" font-weight="700" fill="#7C3AED">Stripe Elements</text>
+  <text x="133" y="242" text-anchor="middle" font-size="10" fill="#94A3B8">Formulario PCI-DSS</text>
+  <text x="133" y="260" text-anchor="middle" font-size="10" fill="#94A3B8">3D Secure v2</text>
+  <text x="133" y="278" text-anchor="middle" font-size="10" fill="#94A3B8">Tarjeta / SEPA / Bizum</text>
+  <text x="133" y="296" text-anchor="middle" font-size="10" fill="#94A3B8">Intent confirmado en Stripe</text>
+
+  <!-- ── STEP 2: Webhook firmado · cx=400 ── -->
+  <circle cx="400" cy="110" r="36" fill="#7C3AED" stroke="#7C3AED" stroke-width="2"/>
+  <text x="400" y="115" text-anchor="middle" font-size="22" font-weight="900" fill="#FFFFFF">2</text>
+
+  <text x="400" y="164" text-anchor="middle" font-size="13" font-weight="700" fill="#FFFFFF">Webhook</text>
+  <text x="400" y="180" text-anchor="middle" font-size="13" font-weight="700" fill="#FFFFFF">firmado</text>
+
+  <rect x="297" y="200" width="206" height="120" rx="8" fill="#0F172A" stroke="#7C3AED50" stroke-width="1"/>
+  <text x="400" y="224" text-anchor="middle" font-size="11" font-weight="700" fill="#7C3AED">Stripe → Backend</text>
+  <text x="400" y="242" text-anchor="middle" font-size="10" fill="#94A3B8">HMAC-SHA256 verificado</text>
+  <text x="400" y="260" text-anchor="middle" font-size="10" fill="#94A3B8">Idempotente por event.id</text>
+  <text x="400" y="278" text-anchor="middle" font-size="10" fill="#94A3B8">Reintento automático Stripe</text>
+  <text x="400" y="296" text-anchor="middle" font-size="10" fill="#94A3B8">POST /api/payments/webhook</text>
+
+  <!-- ── STEP 3: Pedido creado · cx=667 ── -->
+  <circle cx="667" cy="110" r="36" fill="#7C3AED" stroke="#7C3AED" stroke-width="2"/>
+  <text x="667" y="115" text-anchor="middle" font-size="22" font-weight="900" fill="#FFFFFF">3</text>
+
+  <text x="667" y="164" text-anchor="middle" font-size="13" font-weight="700" fill="#FFFFFF">Pedido</text>
+  <text x="667" y="180" text-anchor="middle" font-size="13" font-weight="700" fill="#FFFFFF">creado</text>
+
+  <rect x="564" y="200" width="206" height="120" rx="8" fill="#0F172A" stroke="#7C3AED50" stroke-width="1"/>
+  <text x="667" y="224" text-anchor="middle" font-size="11" font-weight="700" fill="#7C3AED">BD Transaccional</text>
+  <text x="667" y="242" text-anchor="middle" font-size="10" fill="#94A3B8">Stock actualizado atómico</text>
+  <text x="667" y="260" text-anchor="middle" font-size="10" fill="#94A3B8">Order + OrderItems creados</text>
+  <text x="667" y="278" text-anchor="middle" font-size="10" fill="#94A3B8">Estado: pending → paid</text>
+  <text x="667" y="296" text-anchor="middle" font-size="10" fill="#94A3B8">Customer vinculado</text>
+
+  <!-- ── STEP 4: Email n8n · cx=934 ── -->
+  <circle cx="934" cy="110" r="36" fill="#7C3AED" stroke="#7C3AED" stroke-width="2"/>
+  <text x="934" y="115" text-anchor="middle" font-size="22" font-weight="900" fill="#FFFFFF">4</text>
+
+  <text x="934" y="164" text-anchor="middle" font-size="13" font-weight="700" fill="#FFFFFF">Email</text>
+  <text x="934" y="180" text-anchor="middle" font-size="13" font-weight="700" fill="#FFFFFF">confirmación</text>
+
+  <rect x="831" y="200" width="206" height="120" rx="8" fill="#0F172A" stroke="#7C3AED50" stroke-width="1"/>
+  <text x="934" y="224" text-anchor="middle" font-size="11" font-weight="700" fill="#7C3AED">n8n Workflow</text>
+  <text x="934" y="242" text-anchor="middle" font-size="10" fill="#94A3B8">Branding de la tienda</text>
+  <text x="934" y="260" text-anchor="middle" font-size="10" fill="#94A3B8">Logotipo + colores custom</text>
+  <text x="934" y="278" text-anchor="middle" font-size="10" fill="#94A3B8">Multiidioma (ES / EN)</text>
+  <text x="934" y="296" text-anchor="middle" font-size="10" fill="#94A3B8">SMTP + copia al CEO</text>
+
+  <!-- ── STEP 5: Socket.IO · cx=1200 ── -->
+  <circle cx="1200" cy="110" r="36" fill="#7C3AED" stroke="#7C3AED" stroke-width="2"/>
+  <text x="1200" y="115" text-anchor="middle" font-size="22" font-weight="900" fill="#FFFFFF">5</text>
+
+  <text x="1200" y="164" text-anchor="middle" font-size="13" font-weight="700" fill="#FFFFFF">Actualización</text>
+  <text x="1200" y="180" text-anchor="middle" font-size="13" font-weight="700" fill="#FFFFFF">de estado</text>
+
+  <rect x="1097" y="200" width="206" height="120" rx="8" fill="#0F172A" stroke="#7C3AED50" stroke-width="1"/>
+  <text x="1200" y="224" text-anchor="middle" font-size="11" font-weight="700" fill="#7C3AED">Socket.IO · Tiempo real</text>
+  <text x="1200" y="242" text-anchor="middle" font-size="10" fill="#94A3B8">Panel CEO notificado</text>
+  <text x="1200" y="260" text-anchor="middle" font-size="10" fill="#94A3B8">Estado: enviado / entregado</text>
+  <text x="1200" y="278" text-anchor="middle" font-size="10" fill="#94A3B8">Sin polling — WebSocket</text>
+  <text x="1200" y="296" text-anchor="middle" font-size="10" fill="#94A3B8">Badge pedidos pendientes</text>
+
+  <!-- ── STEP 6: Factura PDF · cx=1467 ── -->
+  <circle cx="1467" cy="110" r="36" fill="#10B981" stroke="#10B981" stroke-width="2"/>
+  <text x="1467" y="115" text-anchor="middle" font-size="22" font-weight="900" fill="#FFFFFF">6</text>
+
+  <text x="1467" y="164" text-anchor="middle" font-size="13" font-weight="700" fill="#FFFFFF">Factura</text>
+  <text x="1467" y="180" text-anchor="middle" font-size="13" font-weight="700" fill="#FFFFFF">PDF</text>
+
+  <rect x="1364" y="200" width="206" height="120" rx="8" fill="#10B98110" stroke="#10B981" stroke-width="1.5"/>
+  <text x="1467" y="224" text-anchor="middle" font-size="11" font-weight="700" fill="#10B981">PDFKit generado</text>
+  <text x="1467" y="242" text-anchor="middle" font-size="10" fill="#94A3B8">Numeración secuencial</text>
+  <text x="1467" y="260" text-anchor="middle" font-size="10" fill="#94A3B8">Datos fiscales del cliente</text>
+  <text x="1467" y="278" text-anchor="middle" font-size="10" fill="#94A3B8">Logo y branding tienda</text>
+  <text x="1467" y="296" text-anchor="middle" font-size="10" fill="#94A3B8">Descarga / Email adjunto</text>
+
+  <!-- Labels paso (etiqueta pequeña encima) -->
+  <text x="133"  y="58" text-anchor="middle" font-size="9" fill="#94A3B8">PAGO</text>
+  <text x="400"  y="58" text-anchor="middle" font-size="9" fill="#94A3B8">VALIDACIÓN</text>
+  <text x="667"  y="58" text-anchor="middle" font-size="9" fill="#94A3B8">REGISTRO</text>
+  <text x="934"  y="58" text-anchor="middle" font-size="9" fill="#94A3B8">NOTIFICACIÓN</text>
+  <text x="1200" y="58" text-anchor="middle" font-size="9" fill="#94A3B8">SEGUIMIENTO</text>
+  <text x="1467" y="58" text-anchor="middle" font-size="9" fill="#10B981">DOCUMENTACIÓN</text>
+
+  <!-- Footer -->
+  <text x="800" y="470" text-anchor="middle" font-size="10" fill="#374151">NeonHub — Trabajo Final de Grado Superior en Desarrollo de Aplicaciones Multiplataforma · 2025-2026</text>
+</svg>

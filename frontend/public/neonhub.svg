@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" fill="none">
+  <defs>
+    <linearGradient id="g1" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#6366f1"/>
+      <stop offset="50%" stop-color="#8b5cf6"/>
+      <stop offset="100%" stop-color="#a855f7"/>
+    </linearGradient>
+    <linearGradient id="g2" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#22d3ee"/>
+      <stop offset="100%" stop-color="#6366f1"/>
+    </linearGradient>
+  </defs>
+  <!-- Rounded background -->
+  <rect width="128" height="128" rx="28" fill="#0f172a"/>
+  <!-- N letter stylized with neon glow -->
+  <path d="M36 92V36h8l32 40V36h8v56h-8L44 52v40h-8z" fill="url(#g1)" opacity="0.9"/>
+  <!-- Accent dot -->
+  <circle cx="96" cy="40" r="6" fill="url(#g2)"/>
+  <!-- Subtle glow line -->
+  <rect x="32" y="98" width="64" height="3" rx="1.5" fill="url(#g2)" opacity="0.6"/>
+</svg>

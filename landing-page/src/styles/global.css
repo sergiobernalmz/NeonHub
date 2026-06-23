@@ -1,0 +1,120 @@
+@import "tailwindcss";
+
+/* Enable class-based dark mode for Tailwind v4 dark: utilities */
+@variant dark (&:where(.dark, .dark *));
+
+/* ===== LANDING TEMA OSCURO (por defecto) ===== */
+:root, :root[data-theme="dark"] {
+    --background: 224 71% 4%;
+    --foreground: 213 31% 91%;
+    --accent: 262 83% 58%;
+    --accent-foreground: 210 40% 98%;
+    --bg: #0b0f1a;
+    --text: #f9fafb;
+    --card-bg: #1e293b;
+    --border: rgba(255,255,255,0.1);
+}
+
+/* ===== LANDING TEMA CLARO ===== */
+:root[data-theme="light"] {
+    --background: 210 40% 98%;
+    --foreground: 222 47% 11%;
+    --accent: 262 83% 58%;
+    --accent-foreground: 210 40% 98%;
+    --bg: #f8fafc;
+    --text: #0f172a;
+    --card-bg: #ffffff;
+    --border: rgba(0,0,0,0.1);
+}
+
+@layer base {
+    body {
+        @apply bg-[hsl(var(--background))] text-[hsl(var(--foreground))] antialiased;
+        font-feature-settings: "rlig" 1, "calt" 1;
+        transition: background-color 0.2s ease, color 0.2s ease;
+    }
+}
+
+@layer utilities {
+    .text-glow {
+        text-shadow: 0 0 20px hsl(var(--accent) / 0.5);
+    }
+
+    .bg-grid-pattern {
+        background-size: 40px 40px;
+        background-image: linear-gradient(to right, rgba(0, 0, 0, 0.04) 1px, transparent 1px),
+            linear-gradient(to bottom, rgba(0, 0, 0, 0.04) 1px, transparent 1px);
+    }
+    :where(.dark, .dark *) .bg-grid-pattern {
+        background-image: linear-gradient(to right, rgba(255, 255, 255, 0.05) 1px, transparent 1px),
+            linear-gradient(to bottom, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+    }
+
+    /* ── PRICING HOMEPAGE CARDS (Pricing.jsx) ── */
+    .pricing-home-card {
+      background: #ffffff;
+      border: 1px solid #e5e7eb;
+      box-shadow: 0 4px 24px rgba(0, 0, 0, 0.08);
+    }
+    :where(.dark, .dark *) .pricing-home-card {
+      background: rgba(15, 23, 42, 0.8);
+      border: 1px solid rgba(255, 255, 255, 0.07);
+      box-shadow: none;
+    }
+    .pricing-home-card-featured {
+      background: linear-gradient(160deg, rgba(109, 40, 217, 0.06) 0%, #ffffff 100%);
+      border: 1px solid rgba(139, 92, 246, 0.3);
+      box-shadow: 0 8px 32px rgba(124, 58, 237, 0.12);
+    }
+    :where(.dark, .dark *) .pricing-home-card-featured {
+      background: linear-gradient(160deg, rgba(109, 40, 217, 0.25) 0%, rgba(15, 14, 26, 0.95) 100%);
+      border: 1px solid rgba(139, 92, 246, 0.4);
+      box-shadow: none;
+    }
+    .pricing-home-card-enterprise {
+      background: linear-gradient(160deg, rgba(217, 119, 6, 0.06) 0%, #ffffff 100%);
+      border: 1px solid rgba(217, 119, 6, 0.2);
+      box-shadow: 0 4px 24px rgba(217, 119, 6, 0.08);
+    }
+    :where(.dark, .dark *) .pricing-home-card-enterprise {
+      background: linear-gradient(160deg, rgba(120, 53, 15, 0.15) 0%, rgba(15, 14, 26, 0.95) 100%);
+      border: 1px solid rgba(217, 119, 6, 0.25);
+      box-shadow: none;
+    }
+
+    /* Monthly price text inside cards */
+    .pricing-home-monthly { color: #6b7280; }
+    .pricing-home-card-featured .pricing-home-monthly { color: #7c3aed; }
+    .pricing-home-card-enterprise .pricing-home-monthly { color: #b45309; }
+    :where(.dark, .dark *) .pricing-home-monthly { color: #94a3b8; }
+    :where(.dark, .dark *) .pricing-home-card-featured .pricing-home-monthly { color: #c4b5fd; }
+    :where(.dark, .dark *) .pricing-home-card-enterprise .pricing-home-monthly { color: #fbbf24; }
+
+    /* Secondary CTA button (Esencial plan) */
+    .pricing-home-cta-normal {
+      background: #f3f4f6;
+      border: 1px solid #d1d5db;
+      color: #374151;
+    }
+    :where(.dark, .dark *) .pricing-home-cta-normal {
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      color: #ffffff;
+    }
+
+    /* Custom Scrollbar */
+    .custom-scrollbar::-webkit-scrollbar {
+        width: 6px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-track {
+        background: rgba(0, 0, 0, 0.2);
+        border-radius: 8px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 8px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+        background: rgba(255, 255, 255, 0.2);
+    }
+}

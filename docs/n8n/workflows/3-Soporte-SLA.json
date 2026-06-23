@@ -1,0 +1,154 @@
+{
+  "name": "FINAL - Workflow 3: Soporte SLA (Reportes Críticos)",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "*/5 * * * *"
+            }
+          ]
+        }
+      },
+      "name": "Cron (5 min)",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1,
+      "position": [
+        100,
+        300
+      ],
+      "id": "gi0min"
+    },
+    {
+      "parameters": {
+        "url": "{{$env[\"NEONHUB_API_BASE\"]}}/api/reports?priority=critical&status=open",
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer {{$env[\"NEONHUB_API_KEY\"]}}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "name": "Fetch Critical Reports",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 1,
+      "position": [
+        300,
+        300
+      ],
+      "id": "09o5qg"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "number": [
+            {
+              "value1": "={{$json.body.length}}",
+              "operation": "larger",
+              "value2": 0
+            }
+          ]
+        }
+      },
+      "name": "IF Has Reports",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [
+        500,
+        300
+      ],
+      "id": "dx8n3c"
+    },
+    {
+      "parameters": {
+        "channel": "C02SOPORTECRIT",
+        "text": "=URGENTE: Hay {{$json.body.length}} reportes críticos abiertos que requieren atención inmediata."
+      },
+      "name": "Slack Critical Alert",
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 1,
+      "position": [
+        700,
+        200
+      ],
+      "id": "6eabp"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.trello.com/1/cards",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "name",
+              "value": "=SLA Alert: {{$json.body.length}} Critical Reports"
+            },
+            {
+              "name": "idList",
+              "value": "YOUR_TRELLO_LIST_ID"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "name": "Create Ticket (Trello)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 1,
+      "position": [
+        700,
+        400
+      ],
+      "id": "lc73c9"
+    }
+  ],
+  "connections": {
+    "Cron (5 min)": {
+      "main": [
+        [
+          {
+            "node": "Fetch Critical Reports",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch Critical Reports": {
+      "main": [
+        [
+          {
+            "node": "IF Has Reports",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF Has Reports": {
+      "main": [
+        [
+          {
+            "node": "Slack Critical Alert",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Create Ticket (Trello)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {},
+  "meta": {},
+  "id": "g1f2y"
+}

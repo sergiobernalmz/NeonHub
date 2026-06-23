@@ -1,0 +1,177 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import { findUserByEmail, createUser } from '../../lib/db';
+import { createSession, hashPassword, validateSession } from '../../lib/auth';
+
+const { searchParams } = Astro.url;
+const sessionId = searchParams.get('session_id') || '';
+const subdomain = searchParams.get('subdomain') || '';
+const envApiBase = (import.meta.env.PUBLIC_API_BASE_URL || '').replace(/\/$/, '');
+const requestOrigin = Astro.url.origin;
+const apiBaseUrl = (envApiBase && !envApiBase.includes('localhost') && !envApiBase.includes('127.0.0.1'))
+  ? envApiBase
+  : `${requestOrigin}/api`;
+
+// intentamos hacer auto-login al usuario
+let autoLoginSuccess = false;
+let autoLoginError = null;
+
+if (sessionId) {
+  // primero comprobamos si ya está logueado
+  const currentToken = Astro.cookies.get('app_auth_token')?.value;
+  const currentSession = currentToken ? await validateSession(currentToken) : null;
+
+  if (currentSession) {
+    autoLoginSuccess = true;
+  } else {
+    try {
+      // obtenemos la info de sesión del backend
+      const res = await fetch(`${apiBaseUrl}/billing/session-info?session_id=${encodeURIComponent(sessionId)}`);
+      if (res.ok) {
+        const data = await res.json();
+        if (data.success && data.data) {
+          const { email, firstName, lastName } = data.data;
+
+          // buscamos el usuario en la base de datos
+          const existingUser = await findUserByEmail(email);
+          let userId;
+
+          if (existingUser) {
+            userId = existingUser.id;
+          } else {
+            // creamos el usuario nuevo en la base de datos de la landing
+            userId = crypto.randomUUID();
+            const hashedPassword = await hashPassword(crypto.randomUUID());
+            const username = `${firstName || 'User'}_${lastName || 'Admin'}`.replace(/\s+/g, '').toLowerCase();
+
+            await createUser({
+              id: userId,
+              username: `${username}_${Math.floor(Math.random() * 1000)}`,
+              email: email,
+              password: hashedPassword,
+              role: 'user'
+            });
+          }
+
+          // creamos la sesión
+          const newSessionId = await createSession(userId);
+          Astro.cookies.set('app_auth_token', newSessionId, {
+            path: '/',
+            httpOnly: true,
+            secure: import.meta.env.PROD,
+            maxAge: 60 * 60 * 24 * 30
+          });
+          autoLoginSuccess = true;
+        }
+      }
+    } catch (err) {
+      console.error('Error en el auto-login:', err);
+      autoLoginError = err.message;
+    }
+  }
+}
+---
+
+<Layout title="Pago recibido - NeonHub">
+  <main class="min-h-screen bg-white dark:bg-slate-950 py-24 px-6">
+    <div class="max-w-3xl mx-auto">
+      <div class="bg-gray-50 dark:bg-slate-900/60 border border-gray-200 dark:border-white/10 rounded-3xl p-8">
+        <h1 class="text-3xl font-bold text-gray-900 dark:text-white mb-3">¡Pago recibido correctamente!</h1>
+        <p class="text-gray-600 dark:text-slate-300 mb-6">
+          Estamos preparando tu tienda. En menos de 5 minutos estará lista.
+        </p>
+
+        <div class="space-y-3 text-sm text-gray-600 dark:text-slate-300 mb-8">
+          {subdomain && <p><strong class="text-gray-900 dark:text-white">Tu tienda:</strong> <span class="text-violet-400">{subdomain}.neonhub.es</span></p>}
+        </div>
+
+        <div id="statusBox" class="rounded-xl border border-gray-300 dark:border-slate-700 bg-gray-50 dark:bg-slate-950/70 p-4 text-gray-600 dark:text-slate-300">
+          <div class="flex items-center gap-3">
+            <div class="animate-spin h-5 w-5 border-2 border-violet-500 border-t-transparent rounded-full"></div>
+            <span>Preparando tu tienda...</span>
+          </div>
+        </div>
+
+        <div id="readyNotice" class="hidden mt-4 rounded-xl border border-green-500/30 bg-green-950/30 p-4 text-green-200 text-sm">
+          <p class="font-semibold text-green-100 mb-1">✅ ¡Tu tienda está lista!</p>
+          <p>Ya puedes acceder a tu panel de administración en <a href="" id="tenantLink" class="text-violet-400 underline hover:text-violet-300"></a></p>
+        </div>
+
+        <div class="mt-8 flex flex-wrap gap-3">
+          <a href="/" class="px-4 py-2 rounded-lg border border-gray-300 dark:border-white/20 text-gray-700 dark:text-white hover:bg-gray-100 dark:hover:bg-white/10 transition-colors">Volver al inicio</a>
+          <a id="openTenantBtn" href="#" class="hidden px-4 py-2 rounded-lg bg-violet-600 text-white hover:bg-violet-700 transition-colors">Acceder a mi tienda</a>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <script define:vars={{ subdomain, sessionId, apiBaseUrl }}>
+    const statusBox = document.getElementById('statusBox');
+    let pollHandle = null;
+
+    const setMessage = (message, tone = 'neutral') => {
+      if (!statusBox) return;
+      statusBox.textContent = message;
+      statusBox.classList.remove('border-red-500/40', 'border-green-500/40', 'border-slate-700');
+      if (tone === 'error') statusBox.classList.add('border-red-500/40');
+      else if (tone === 'ok') statusBox.classList.add('border-green-500/40');
+      else statusBox.classList.add('border-slate-700');
+    };
+
+    const pollStatus = async () => {
+      if (!subdomain) {
+        setMessage('No se ha recibido subdominio para consultar el estado.', 'error');
+        return;
+      }
+
+      try {
+        const query = new URLSearchParams({ subdomain });
+        if (sessionId) {
+          query.set('session_id', sessionId);
+        }
+
+        const response = await fetch(`${apiBaseUrl}/billing/provisioning-status?${query.toString()}`);
+        const data = await response.json();
+
+        if (!response.ok || !data?.success) {
+          setMessage(data?.message || 'Tu tienda se está preparando. Un momento...', 'neutral');
+          return;
+        }
+
+        const jobStatus = data?.data?.job?.status || 'queued';
+
+        if (jobStatus === 'completed') {
+          statusBox.innerHTML = '<p class="text-green-300 font-semibold">✅ ¡Tienda lista!</p>';
+          statusBox.classList.remove('border-slate-700');
+          statusBox.classList.add('border-green-500/40');
+          
+          const notice = document.getElementById('readyNotice');
+          const tenantUrl = `https://${subdomain}.neonhub.es`;
+          if (notice) {
+            notice.classList.remove('hidden');
+            const link = document.getElementById('tenantLink');
+            if (link) { link.href = tenantUrl; link.textContent = `${subdomain}.neonhub.es`; }
+          }
+          const openBtn = document.getElementById('openTenantBtn');
+          if (openBtn) { openBtn.href = tenantUrl; openBtn.classList.remove('hidden'); }
+          
+          if (pollHandle) clearInterval(pollHandle);
+          return;
+        }
+
+        if (jobStatus === 'failed') {
+          setMessage('Ha ocurrido un error al crear tu tienda. Contacta con soporte.', 'error');
+          if (pollHandle) clearInterval(pollHandle);
+          return;
+        }
+
+        setMessage('Tu tienda se está creando, un momento...', 'neutral');
+      } catch (error) {
+        setMessage('No se pudo consultar el estado ahora mismo. Reintentando...', 'neutral');
+      }
+    };
+
+    pollStatus();
+    pollHandle = setInterval(pollStatus, 7000);
+  </script>
+</Layout>

@@ -1,0 +1,423 @@
+✅ Model associations setup completed
+Model: Certification
+  id: INTEGER
+  name: STRING
+  code: STRING
+  description: TEXT
+  type: ENUM
+  issuer: STRING
+  website: STRING
+  country: STRING
+  region: ENUM
+  verificationMethod: ENUM
+  apiEndpoint: STRING
+  apiKey: STRING
+  validityPeriod: INTEGER
+  renewalRequired: BOOLEAN
+  level: ENUM
+  criteria: JSON
+  logo: STRING
+  color: STRING
+  impact: JSON
+  isActive: BOOLEAN
+  lastApiCheck: DATE
+  apiStatus: ENUM
+  metadata: JSON
+  deletedAt: DATE
+  -> [Assoc BelongsToMany] Product (as products)
+  -> [Assoc HasMany] ProductCertification (as certificationProducts)
+
+Model: ProductCertification
+  id: INTEGER
+  productId: UUID
+  certificationId: INTEGER
+  certificationNumber: STRING
+  issueDate: DATE
+  expiryDate: DATE
+  status: ENUM
+  verificationStatus: ENUM
+  score: DECIMAL
+  level: STRING
+  certifyingBody: STRING
+  certificateUrl: STRING
+  verificationUrl: STRING
+  documents: JSON
+  cost: DECIMAL
+  renewalCost: DECIMAL
+  lastVerification: DATE
+  nextVerification: DATE
+  verificationData: JSON
+  alertsSent: JSON
+  notes: TEXT
+  isPublic: BOOLEAN
+  priority: INTEGER
+  auditTrail: JSON
+  deletedAt: DATE
+  -> [Assoc BelongsTo] Product (as Product)
+  -> [Assoc BelongsTo] Certification (as Certification)
+
+Model: User
+  id: UUID
+  store_id: UUID
+  username: STRING
+  email: STRING
+  password_hash: STRING
+  first_name: STRING
+  last_name: STRING
+  phone: STRING
+  address: TEXT
+  avatar_url: STRING
+  is_active: BOOLEAN
+  email_verified: BOOLEAN
+  email_verified_at: DATE
+  password_reset_token: STRING
+  verification_token: STRING
+  password_reset_expires: DATE
+  last_login_at: DATE
+  login_attempts: INTEGER
+  locked_until: DATE
+  preferences: JSON
+  deletedAt: DATE
+  -> [Assoc BelongsToMany] Role (as roles)
+  -> [Assoc HasMany] UserRole (as userRoles)
+  -> [Assoc BelongsTo] Store (as store)
+  -> [Assoc HasMany] Order (as orders)
+  -> [Assoc HasMany] Invoice (as createdInvoices)
+  -> [Assoc HasMany] SustainabilityMetric (as sustainabilityMetrics)
+  -> [Assoc HasMany] Notification (as notifications)
+  -> [Assoc HasMany] AuditLog (as auditLogs)
+  -> [Assoc HasMany] Report (as reportedIssues)
+  -> [Assoc HasMany] Report (as assignedReports)
+  -> [Assoc HasMany] ReportComment (as reportComments)
+  -> [Assoc HasOne] Cart (as cart)
+
+Model: Role
+  id: UUID
+  name: STRING
+  display_name: STRING
+  description: TEXT
+  permissions: JSON
+  level: INTEGER
+  is_active: BOOLEAN
+  is_system: BOOLEAN
+  deletedAt: DATE
+  -> [Assoc BelongsToMany] User (as users)
+  -> [Assoc HasMany] UserRole (as userRoles)
+
+Model: UserRole
+  id: UUID
+  user_id: UUID
+  role_id: UUID
+  assigned_by: UUID
+  assigned_at: DATE
+  expires_at: DATE
+  is_active: BOOLEAN
+  -> [Assoc BelongsTo] User (as user)
+  -> [Assoc BelongsTo] Role (as role)
+  -> [Assoc BelongsTo] User (as assignedBy)
+
+Model: Store
+  id: UUID
+  name: STRING
+  subdomain: STRING
+  api_key_public: STRING
+  api_key_secret: STRING
+  settings: JSON
+  is_active: BOOLEAN
+  deletedAt: DATE
+  -> [Assoc HasMany] User (as users)
+  -> [Assoc HasMany] Product (as products)
+  -> [Assoc HasMany] Order (as orders)
+  -> [Assoc HasMany] Customer (as customers)
+  -> [Assoc HasMany] Category (as categories)
+
+Model: Product
+  id: UUID
+  store_id: UUID
+  name: STRING
+  slug: STRING
+  sku: STRING
+  description: TEXT
+  short_description: STRING
+  category_id: UUID
+  supplier_id: UUID
+  price: DECIMAL
+  cost_price: DECIMAL
+  compare_price: DECIMAL
+  currency: STRING
+  stock_quantity: INTEGER
+  min_stock_level: INTEGER
+  max_stock_level: INTEGER
+  track_inventory: BOOLEAN
+  allow_backorder: BOOLEAN
+  weight: DECIMAL
+  dimensions: JSON
+  images: JSON
+  tags: JSON
+  is_active: BOOLEAN
+  is_featured: BOOLEAN
+  carbon_footprint: DECIMAL
+  sustainability_score: INTEGER
+  eco_friendly: BOOLEAN
+  recyclable: BOOLEAN
+  metadata: JSON
+  deletedAt: DATE
+  -> [Assoc BelongsTo] Store (as store)
+  -> [Assoc BelongsTo] Category (as category)
+  -> [Assoc BelongsTo] Supplier (as supplier)
+  -> [Assoc HasMany] OrderItem (as orderItems)
+  -> [Assoc HasMany] InvoiceItem (as invoiceItems)
+  -> [Assoc HasMany] CartItem (as cartItems)
+  -> [Assoc BelongsToMany] Certification (as certifications)
+  -> [Assoc HasMany] ProductCertification (as productCertifications)
+
+Model: Category
+  id: UUID
+  store_id: UUID
+  name: STRING
+  description: TEXT
+  slug: STRING
+  parent_id: UUID
+  image: STRING
+  icon: STRING
+  color: STRING
+  sort_order: INTEGER
+  is_active: BOOLEAN
+  metadata: JSON
+  deletedAt: DATE
+  -> [Assoc BelongsTo] Store (as store)
+  -> [Assoc HasMany] Product (as products)
+
+Model: Customer
+  id: UUID
+  store_id: UUID
+  customer_code: STRING
+  company_name: STRING
+  first_name: STRING
+  last_name: STRING
+  email: STRING
+  phone: STRING
+  tax_id: STRING
+  billing_address: JSON
+  shipping_address: JSON
+  customer_type: ENUM
+  credit_limit: DECIMAL
+  payment_terms: INTEGER
+  discount_rate: DECIMAL
+  is_active: BOOLEAN
+  notes: TEXT
+  tags: JSON
+  deletedAt: DATE
+  -> [Assoc BelongsTo] Store (as store)
+  -> [Assoc HasMany] Order (as orders)
+  -> [Assoc HasMany] Invoice (as invoices)
+
+Model: Order
+  id: UUID
+  store_id: UUID
+  order_number: STRING
+  customer_id: UUID
+  user_id: UUID
+  status: ENUM
+  order_date: DATE
+  required_date: DATE
+  shipped_date: DATE
+  subtotal: DECIMAL
+  tax_amount: DECIMAL
+  discount_amount: DECIMAL
+  shipping_amount: DECIMAL
+  total_amount: DECIMAL
+  currency: STRING
+  payment_status: ENUM
+  payment_method: STRING
+  stripe_payment_intent_id: STRING
+  stripe_charge_id: STRING
+  stripe_client_secret: STRING
+  billing_address: JSON
+  internal_notes: TEXT
+  metadata: JSON
+  shipping_address: JSON
+  notes: TEXT
+  deletedAt: DATE
+  -> [Assoc BelongsTo] Store (as store)
+  -> [Assoc BelongsTo] Customer (as customer)
+  -> [Assoc BelongsTo] User (as user)
+  -> [Assoc HasMany] OrderItem (as items)
+  -> [Assoc HasOne] Invoice (as invoice)
+  -> [Assoc HasMany] Transaction (as transactions)
+
+Model: OrderItem
+  id: UUID
+  order_id: UUID
+  product_id: UUID
+  quantity: INTEGER
+  unit_price: DECIMAL
+  discount_rate: DECIMAL
+  tax_rate: DECIMAL
+  line_total: DECIMAL
+  -> [Assoc BelongsTo] Order (as order)
+  -> [Assoc BelongsTo] Product (as product)
+
+Model: Invoice
+  id: UUID
+  invoice_number: STRING
+  customer_id: UUID
+  order_id: UUID
+  created_by: UUID
+  status: ENUM
+  invoice_date: DATE
+  due_date: DATE
+  paid_date: DATE
+  subtotal: DECIMAL
+  tax_amount: DECIMAL
+  discount_amount: DECIMAL
+  total_amount: DECIMAL
+  paid_amount: DECIMAL
+  notes: TEXT
+  deletedAt: DATE
+  -> [Assoc BelongsTo] Customer (as customer)
+  -> [Assoc BelongsTo] Order (as order)
+  -> [Assoc BelongsTo] User (as creator)
+  -> [Assoc HasMany] InvoiceItem (as items)
+
+Model: InvoiceItem
+  id: UUID
+  invoice_id: UUID
+  product_id: UUID
+  quantity: INTEGER
+  unit_price: DECIMAL
+  discount_rate: DECIMAL
+  tax_rate: DECIMAL
+  line_total: DECIMAL
+  -> [Assoc BelongsTo] Invoice (as invoice)
+  -> [Assoc BelongsTo] Product (as product)
+
+Model: SustainabilityMetric
+  id: UUID
+  metric_type: ENUM
+  value: DECIMAL
+  unit: STRING
+  period_start: DATE
+  period_end: DATE
+  recorded_by: UUID
+  source: STRING
+  notes: TEXT
+  metadata: JSON
+  -> [Assoc BelongsTo] User (as recorder)
+
+Model: Supplier
+  id: UUID
+  name: STRING
+  contact_email: STRING
+  certification: STRING
+  sustainability_score: INTEGER
+  is_active: BOOLEAN
+  -> [Assoc HasMany] Product (as products)
+
+Model: Notification
+  id: UUID
+  user_id: UUID
+  title: STRING
+  message: TEXT
+  type: ENUM
+  category: ENUM
+  is_read: BOOLEAN
+  read_at: DATE
+  action_url: STRING
+  metadata: JSON
+  -> [Assoc BelongsTo] User (as user)
+
+Model: AuditLog
+  id: UUID
+  user_id: UUID
+  action: ENUM
+  resource_type: STRING
+  resource_id: UUID
+  old_values: JSON
+  new_values: JSON
+  ip_address: STRING
+  user_agent: TEXT
+  description: TEXT
+  metadata: JSON
+  -> [Assoc BelongsTo] User (as user)
+
+Model: Report
+  id: UUID
+  report_number: STRING
+  type: ENUM
+  category: STRING
+  title: STRING
+  description: TEXT
+  priority: ENUM
+  status: ENUM
+  reporter_id: UUID
+  assigned_to: UUID
+  assigned_role: STRING
+  related_entity_type: STRING
+  related_entity_id: UUID
+  attachments: JSON
+  metadata: JSON
+  resolution_notes: TEXT
+  resolved_at: DATE
+  closed_at: DATE
+  due_date: DATE
+  views_count: INTEGER
+  is_urgent: BOOLEAN
+  deletedAt: DATE
+  -> [Assoc BelongsTo] User (as reporter)
+  -> [Assoc BelongsTo] User (as assignee)
+  -> [Assoc HasMany] ReportComment (as comments)
+
+Model: ReportComment
+  id: UUID
+  report_id: UUID
+  user_id: UUID
+  comment: TEXT
+  attachments: JSON
+  is_internal: BOOLEAN
+  -> [Assoc BelongsTo] Report (as report)
+  -> [Assoc BelongsTo] User (as user)
+
+Model: Cart
+  id: UUID
+  user_id: UUID
+  status: STRING
+  metadata: JSON
+  deletedAt: DATE
+  -> [Assoc BelongsTo] User (as user)
+  -> [Assoc HasMany] CartItem (as items)
+
+Model: CartItem
+  id: UUID
+  cart_id: UUID
+  product_id: UUID
+  quantity: INTEGER
+  unit_price: DECIMAL
+  metadata: JSON
+  deletedAt: DATE
+  -> [Assoc BelongsTo] Cart (as cart)
+  -> [Assoc BelongsTo] Product (as product)
+
+Model: Transaction
+  id: UUID
+  order_id: UUID
+  transaction_type: ENUM
+  amount: DECIMAL
+  currency: STRING
+  stripe_payment_intent_id: STRING
+  stripe_charge_id: STRING
+  stripe_refund_id: STRING
+  status: ENUM
+  payment_method_type: STRING
+  card_brand: STRING
+  card_last4: STRING
+  card_exp_month: INTEGER
+  card_exp_year: INTEGER
+  metadata: JSON
+  error_code: STRING
+  error_message: TEXT
+  processed_at: DATE
+  deletedAt: DATE
+  -> [Assoc BelongsTo] Order (as order)
+
+

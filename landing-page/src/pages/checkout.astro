@@ -1,0 +1,62 @@
+---
+import Layout from '../layouts/Layout.astro';
+import CheckoutForm from '../components/CheckoutForm.jsx';
+import { validateSession } from '../lib/auth';
+
+const sessionId = Astro.cookies.get('app_auth_token')?.value;
+const session = sessionId ? await validateSession(sessionId) : null;
+const user = session ? session.user : null;
+
+const { searchParams } = Astro.url;
+const plan = searchParams.get('plan');
+
+// si no hay sesión, mandamos al login y luego volvemos aquí
+if (!user) {
+  const redirectTo = encodeURIComponent('/checkout' + (plan ? `?plan=${plan}` : ''));
+  return Astro.redirect(`/login?redirect=${redirectTo}`);
+}
+
+// los admin no pueden comprar
+if (user.role === 'admin') {
+  return Astro.redirect('/?blocked=admin_purchase');
+}
+
+// si está autenticado pero sin verificar el email, mostramos aviso
+if (!user.emailVerified) {
+  return Astro.redirect('/checkout?email_not_verified=1');
+}
+
+let planName = 'Esencial';
+let price = 499;
+let monthly = 29;
+let planId = 'starter';
+
+if (plan === 'installation') {
+  planName = 'Profesional';
+  price = 999;
+  monthly = 49;
+  planId = 'installation';
+} else if (plan === 'enterprise') {
+  planName = 'Premium';
+  price = 1499;
+  monthly = 79;
+  planId = 'enterprise';
+}
+---
+
+<Layout title={`Checkout — ${planName} — NeonHub`} noindex={true}>
+  <main class="min-h-screen bg-white dark:bg-slate-950 py-24 px-6 relative overflow-hidden">
+    {/* Background Glows */}
+    <div class="absolute top-0 left-0 w-[500px] h-[500px] bg-violet-600/20 rounded-full blur-[128px] -translate-x-1/2 -translate-y-1/2"></div>
+    <div class="absolute bottom-0 right-0 w-[500px] h-[500px] bg-indigo-600/20 rounded-full blur-[128px] translate-x-1/2 translate-y-1/2"></div>
+
+    <div class="max-w-7xl mx-auto relative z-10">
+      <div class="mb-12">
+        <a href="/" class="text-gray-500 dark:text-slate-400 hover:text-gray-900 dark:hover:text-white transition-colors flex items-center gap-2 mb-8">
+          &larr; Volver al inicio
+        </a>
+      </div>
+      <CheckoutForm client:load planName={planName} planId={planId} price={price} monthly={monthly} initialUser={user as any} emailVerified={user!.emailVerified} />
+    </div>
+  </main>
+</Layout>

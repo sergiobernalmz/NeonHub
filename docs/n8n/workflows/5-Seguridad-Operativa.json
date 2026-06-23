@@ -1,0 +1,158 @@
+{
+  "name": "FINAL - Workflow 5: Seguridad Operativa",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "*/10 * * * *"
+            }
+          ]
+        }
+      },
+      "name": "Cron (10 min)",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1,
+      "position": [
+        100,
+        300
+      ],
+      "id": "v0fuv6"
+    },
+    {
+      "parameters": {
+        "url": "{{$env[\"NEONHUB_API_BASE\"]}}/api/admin/audit-logs?action=login&since=10m",
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer {{$env[\"NEONHUB_API_KEY\"]}}"
+            },
+            {
+              "name": "X-NeonHub-Api-Key",
+              "value": "{{$env[\"NEONHUB_STORE_API_KEY\"]}}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "name": "Fetch Audit Logs",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 1,
+      "position": [
+        300,
+        300
+      ],
+      "id": "xjk5oz"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "number": [
+            {
+              "value1": "={{$json.body.length}}",
+              "operation": "larger",
+              "value2": 5
+            }
+          ]
+        }
+      },
+      "name": "IF > 5 Anomalies",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [
+        500,
+        300
+      ],
+      "id": "lrxom"
+    },
+    {
+      "parameters": {
+        "channel": "C04SECURITY",
+        "text": "=ALERTA SEGURIDAD: {{$json.body.length}} eventos de login detectados en los últimos 10 min. Revisar posibles accesos no autorizados."
+      },
+      "name": "Slack Security Alert",
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 1,
+      "position": [
+        700,
+        200
+      ],
+      "id": "r6yr3i"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.trello.com/1/cards",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "name",
+              "value": "=Security Incident: {{$json.body.length}} anomalies"
+            },
+            {
+              "name": "idList",
+              "value": "YOUR_TRELLO_SECURITY_LIST_ID"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "name": "Create Incident Ticket",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 1,
+      "position": [
+        700,
+        400
+      ],
+      "id": "9fquqm"
+    }
+  ],
+  "connections": {
+    "Cron (10 min)": {
+      "main": [
+        [
+          {
+            "node": "Fetch Audit Logs",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch Audit Logs": {
+      "main": [
+        [
+          {
+            "node": "IF > 5 Anomalies",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF > 5 Anomalies": {
+      "main": [
+        [
+          {
+            "node": "Slack Security Alert",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Create Incident Ticket",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {},
+  "meta": {},
+  "id": "aytcvj"
+}

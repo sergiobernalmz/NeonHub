@@ -1,0 +1,86 @@
+{
+    "name": "Workflow 4: Reporte Diario",
+    "nodes": [
+        {
+            "parameters": {
+                "rule": {
+                    "interval": [
+                        {
+                            "field": "cronExpression",
+                            "expression": "0 8 * * *"
+                        }
+                    ]
+                }
+            },
+            "name": "Schedule Trigger",
+            "type": "n8n-nodes-base.scheduleTrigger",
+            "typeVersion": 1,
+            "position": [
+                250,
+                300
+            ]
+        },
+        {
+            "parameters": {
+                "url": "={{$env[\"NEONHUB_API_BASE\"]}}/api/reports/daily",
+                "options": {}
+            },
+            "name": "Fetch KPIs",
+            "type": "n8n-nodes-base.httpRequest",
+            "typeVersion": 1,
+            "position": [
+                450,
+                300
+            ]
+        },
+        {
+            "parameters": {
+                "method": "POST",
+                "url": "https://webhook.site/demo-slack",
+                "sendBody": true,
+                "bodyParameters": {
+                    "parameters": [
+                        {
+                            "name": "text",
+                            "value": "=Reporte diario SaaS: {{$json.data.mrr}} MRR, {{$json.data.new_tenants}} nuevos tenants."
+                        }
+                    ]
+                },
+                "options": {}
+            },
+            "name": "Simulate Slack Msg",
+            "type": "n8n-nodes-base.httpRequest",
+            "typeVersion": 1,
+            "position": [
+                650,
+                300
+            ]
+        }
+    ],
+    "connections": {
+        "Schedule Trigger": {
+            "main": [
+                [
+                    {
+                        "node": "Fetch KPIs",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Fetch KPIs": {
+            "main": [
+                [
+                    {
+                        "node": "Simulate Slack Msg",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        }
+    },
+    "active": false,
+    "settings": {}
+}

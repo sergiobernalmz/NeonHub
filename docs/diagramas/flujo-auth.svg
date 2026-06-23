@@ -1,0 +1,197 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 800" font-family="system-ui, -apple-system, sans-serif">
+  <defs>
+    <marker id="ag" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M0 1 L10 5 L0 9 z" fill="#94A3B8"/>
+    </marker>
+    <marker id="aok" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M0 1 L10 5 L0 9 z" fill="#10B981"/>
+    </marker>
+    <marker id="aerr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M0 1 L10 5 L0 9 z" fill="#EF4444"/>
+    </marker>
+    <marker id="awarn" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M0 1 L10 5 L0 9 z" fill="#F59E0B"/>
+    </marker>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1600" height="800" fill="#0A0A0F"/>
+
+  <!-- Title -->
+  <text x="800" y="34" text-anchor="middle" font-size="20" font-weight="700" fill="#FFFFFF">Flujo de Autenticación — NeonHub</text>
+
+  <!-- ══ ZONA ERRORES (parte superior) ══ -->
+  <rect x="560" y="50" width="900" height="200" rx="8" fill="#EF444406" stroke="#EF444430" stroke-width="1" stroke-dasharray="5 3"/>
+  <text x="575" y="70" font-size="10" fill="#EF4444" font-weight="700" letter-spacing="1.5">ZONA DE ERROR — Credenciales incorrectas</text>
+
+  <!-- [¿5 intentos?] diamond en error branch: cx=660, cy=150 -->
+  <polygon points="660,110 730,150 660,190 590,150" fill="#F59E0B18" stroke="#F59E0B" stroke-width="2"/>
+  <text x="660" y="145" text-anchor="middle" font-size="10" font-weight="700" fill="#F59E0B">¿5 intentos</text>
+  <text x="660" y="160" text-anchor="middle" font-size="10" font-weight="700" fill="#F59E0B">fallidos?</text>
+
+  <!-- [Bloqueo HTTP 423] — SÍ branch: right -->
+  <rect x="780" y="112" width="210" height="76" rx="8" fill="#EF444418" stroke="#EF4444" stroke-width="2"/>
+  <text x="885" y="140" text-anchor="middle" font-size="12" font-weight="700" fill="#EF4444">Bloqueo HTTP 423</text>
+  <text x="885" y="158" text-anchor="middle" font-size="10" fill="#FFFFFF">15 min bloqueado</text>
+  <text x="885" y="174" text-anchor="middle" font-size="9" fill="#94A3B8">Email aviso + Slack alert</text>
+
+  <!-- [Incrementar contador] — NO branch: right of NO -->
+  <rect x="1040" y="112" width="200" height="76" rx="8" fill="#F59E0B12" stroke="#F59E0B" stroke-width="1.5"/>
+  <text x="1140" y="143" text-anchor="middle" font-size="12" font-weight="700" fill="#F59E0B">Incrementar</text>
+  <text x="1140" y="161" text-anchor="middle" font-size="11" font-weight="700" fill="#F59E0B">contador</text>
+  <text x="1140" y="178" text-anchor="middle" font-size="9" fill="#94A3B8">login_attempts + 1</text>
+
+  <!-- Arrows in error zone -->
+  <!-- [¿5 intentos?] SÍ → Bloqueo -->
+  <line x1="730" y1="150" x2="780" y2="150" stroke="#EF4444" stroke-width="1.5" marker-end="url(#aerr)"/>
+  <text x="752" y="144" text-anchor="middle" font-size="9" fill="#EF4444">SÍ</text>
+  <!-- Bloqueo → Incrementar (they are alternatives, not sequential) -->
+  <!-- [¿5 intentos?] NO → Incrementar (via line going right then up) -->
+  <path d="M730 150 L760 150 L760 85 L1040 85 L1040 150" stroke="#F59E0B" stroke-width="1.5" fill="none" stroke-dasharray="4 2" marker-end="url(#awarn)"/>
+  <text x="870" y="79" text-anchor="middle" font-size="9" fill="#F59E0B">NO</text>
+
+  <!-- ══ MAIN FLOW (middle band y≈380) ══ -->
+
+  <!-- [Usuario] -->
+  <rect x="30" y="355" width="110" height="54" rx="8" fill="#0F172A" stroke="#94A3B8" stroke-width="2"/>
+  <text x="85" y="379" text-anchor="middle" font-size="13" font-weight="700" fill="#FFFFFF">Usuario</text>
+  <text x="85" y="397" text-anchor="middle" font-size="9" fill="#94A3B8">Browser / App</text>
+
+  <!-- → -->
+  <line x1="140" y1="382" x2="175" y2="382" stroke="#94A3B8" stroke-width="1.5" marker-end="url(#ag)"/>
+
+  <!-- [POST /auth/login] -->
+  <rect x="175" y="355" width="170" height="54" rx="8" fill="#7C3AED20" stroke="#7C3AED" stroke-width="2"/>
+  <text x="260" y="376" text-anchor="middle" font-size="12" font-weight="700" fill="#FFFFFF">POST /auth/login</text>
+  <text x="260" y="394" text-anchor="middle" font-size="9" fill="#94A3B8">email + password</text>
+
+  <!-- → -->
+  <line x1="345" y1="382" x2="385" y2="382" stroke="#94A3B8" stroke-width="1.5" marker-end="url(#ag)"/>
+
+  <!-- [¿Credenciales OK?] diamond: cx=480, cy=382 -->
+  <polygon points="480,345 560,382 480,419 400,382" fill="#7C3AED20" stroke="#7C3AED" stroke-width="2"/>
+  <text x="480" y="377" text-anchor="middle" font-size="10" font-weight="700" fill="#7C3AED">¿Credenciales</text>
+  <text x="480" y="392" text-anchor="middle" font-size="10" font-weight="700" fill="#7C3AED">OK?</text>
+
+  <!-- NO → up to error zone -->
+  <path d="M480 345 L480 270 L480 190" stroke="#EF4444" stroke-width="1.5" fill="none" marker-end="url(#aerr)"/>
+  <!-- Connect line to [¿5 intentos?] diamond left -->
+  <path d="M480 190 L590 150" stroke="#EF4444" stroke-width="1.5" fill="none" marker-end="url(#aerr)"/>
+  <text x="498" y="310" font-size="9" fill="#EF4444">NO</text>
+
+  <!-- SÍ → right -->
+  <line x1="560" y1="382" x2="610" y2="382" stroke="#10B981" stroke-width="1.5" marker-end="url(#aok)"/>
+  <text x="582" y="374" font-size="9" fill="#10B981">SÍ</text>
+
+  <!-- [¿Tiene subdominio / x-tenant-id?] diamond: cx=720, cy=382 -->
+  <polygon points="720,340 820,382 720,424 620,382" fill="#7C3AED20" stroke="#7C3AED" stroke-width="2"/>
+  <text x="720" y="372" text-anchor="middle" font-size="9" font-weight="700" fill="#7C3AED">¿Subdominio o</text>
+  <text x="720" y="385" text-anchor="middle" font-size="9" font-weight="700" fill="#7C3AED">x-tenant-id?</text>
+  <text x="720" y="398" text-anchor="middle" font-size="9" fill="#94A3B8">(Web / Electron)</text>
+
+  <!-- ══ RAMAS DE ÉXITO ══ -->
+
+  <!-- ─ Rama 1: Web SÍ subdominio (arriba) y=270 ─ -->
+  <!-- Arrow up-right from diamond -->
+  <path d="M820 360 L860 360 L860 270" stroke="#10B981" stroke-width="1.5" fill="none" marker-end="url(#aok)"/>
+  <text x="835" y="354" font-size="9" fill="#10B981">SÍ (Web)</text>
+
+  <!-- [Validar tenant] -->
+  <rect x="860" y="240" width="160" height="60" rx="8" fill="#10B98118" stroke="#10B981" stroke-width="1.5"/>
+  <text x="940" y="264" text-anchor="middle" font-size="11" font-weight="700" fill="#10B981">Validar tenant</text>
+  <text x="940" y="281" text-anchor="middle" font-size="9" fill="#94A3B8">subdomain → Store</text>
+  <text x="940" y="296" text-anchor="middle" font-size="9" fill="#94A3B8">req.tenant OK</text>
+
+  <!-- → JWT -->
+  <line x1="1020" y1="270" x2="1060" y2="270" stroke="#10B981" stroke-width="1.5" marker-end="url(#aok)"/>
+
+  <!-- [JWT 15min + 7d] -->
+  <rect x="1060" y="240" width="180" height="60" rx="8" fill="#10B98118" stroke="#10B981" stroke-width="1.5"/>
+  <text x="1150" y="264" text-anchor="middle" font-size="11" font-weight="700" fill="#10B981">JWT emitido</text>
+  <text x="1150" y="281" text-anchor="middle" font-size="9" fill="#FFFFFF">access 15 min</text>
+  <text x="1150" y="296" text-anchor="middle" font-size="9" fill="#FFFFFF">refresh 7 días</text>
+
+  <!-- → Dashboard CEO -->
+  <line x1="1240" y1="270" x2="1280" y2="270" stroke="#10B981" stroke-width="1.5" marker-end="url(#aok)"/>
+
+  <rect x="1280" y="240" width="180" height="60" rx="8" fill="#10B981" stroke="#10B981" stroke-width="2"/>
+  <text x="1370" y="267" text-anchor="middle" font-size="12" font-weight="700" fill="#0A0A0F">Dashboard CEO</text>
+  <text x="1370" y="284" text-anchor="middle" font-size="9" fill="#0A0A0F">Panel completo · Tienda</text>
+  <text x="1370" y="298" text-anchor="middle" font-size="9" fill="#0A0A0F">activa · RBAC</text>
+
+  <!-- ─ Rama 2: Electron (NO subdominio, con x-tenant-id manual) y=382 ─ -->
+  <!-- Arrow right from diamond -->
+  <line x1="820" y1="382" x2="870" y2="382" stroke="#06B6D4" stroke-width="1.5" marker-end="url(#ag)"/>
+  <text x="840" y="374" font-size="9" fill="#06B6D4">NO (Electron)</text>
+
+  <!-- [GET /auth/my-tenants] -->
+  <rect x="870" y="354" width="180" height="56" rx="8" fill="#06B6D418" stroke="#06B6D4" stroke-width="1.5"/>
+  <text x="960" y="376" text-anchor="middle" font-size="11" font-weight="700" fill="#06B6D4">GET /auth/my-tenants</text>
+  <text x="960" y="393" text-anchor="middle" font-size="9" fill="#94A3B8">Lista tiendas del usuario</text>
+
+  <!-- → TenantSelector -->
+  <line x1="1050" y1="382" x2="1090" y2="382" stroke="#06B6D4" stroke-width="1.5" marker-end="url(#ag)"/>
+
+  <!-- [TenantSelector] -->
+  <rect x="1090" y="354" width="160" height="56" rx="8" fill="#06B6D418" stroke="#06B6D4" stroke-width="1.5"/>
+  <text x="1170" y="376" text-anchor="middle" font-size="11" font-weight="700" fill="#06B6D4">TenantSelector</text>
+  <text x="1170" y="393" text-anchor="middle" font-size="9" fill="#94A3B8">UI selector tienda</text>
+
+  <!-- → Selecciona tienda -->
+  <line x1="1250" y1="382" x2="1285" y2="382" stroke="#06B6D4" stroke-width="1.5" marker-end="url(#ag)"/>
+
+  <!-- [Dashboard x-tenant-id] -->
+  <rect x="1285" y="354" width="200" height="56" rx="8" fill="#06B6D4" stroke="#06B6D4" stroke-width="2"/>
+  <text x="1385" y="374" text-anchor="middle" font-size="11" font-weight="700" fill="#0A0A0F">Dashboard</text>
+  <text x="1385" y="390" text-anchor="middle" font-size="9" fill="#0A0A0F">x-tenant-id en header</text>
+  <text x="1385" y="404" text-anchor="middle" font-size="9" fill="#0A0A0F">sessionStorage</text>
+
+  <!-- ─ Rama 3: SuperAdmin (abajo) y=510 ─ -->
+  <!-- Arrow down from diamond -->
+  <path d="M720 424 L720 510" stroke="#F59E0B" stroke-width="1.5" fill="none" marker-end="url(#awarn)"/>
+  <text x="728" y="474" font-size="9" fill="#F59E0B">SuperAdmin</text>
+
+  <!-- [isSuperAdmin:true] -->
+  <rect x="620" y="510" width="200" height="60" rx="8" fill="#F59E0B18" stroke="#F59E0B" stroke-width="1.5"/>
+  <text x="720" y="534" text-anchor="middle" font-size="11" font-weight="700" fill="#F59E0B">isSuperAdmin: true</text>
+  <text x="720" y="552" text-anchor="middle" font-size="9" fill="#94A3B8">scope: platform</text>
+  <text x="720" y="566" text-anchor="middle" font-size="9" fill="#94A3B8">level: 100</text>
+
+  <!-- → Panel Admin -->
+  <line x1="820" y1="540" x2="870" y2="540" stroke="#F59E0B" stroke-width="1.5" marker-end="url(#awarn)"/>
+
+  <!-- [Panel Admin] -->
+  <rect x="870" y="512" width="200" height="56" rx="8" fill="#F59E0B18" stroke="#F59E0B" stroke-width="1.5"/>
+  <text x="970" y="536" text-anchor="middle" font-size="11" font-weight="700" fill="#F59E0B">Panel Admin</text>
+  <text x="970" y="553" text-anchor="middle" font-size="9" fill="#94A3B8">Gestión global · proxyStoreId</text>
+  <text x="970" y="567" text-anchor="middle" font-size="9" fill="#94A3B8">Impersonar tiendas</text>
+
+  <!-- → Landing Admin -->
+  <line x1="1070" y1="540" x2="1110" y2="540" stroke="#F59E0B" stroke-width="1.5" marker-end="url(#awarn)"/>
+
+  <rect x="1110" y="512" width="200" height="56" rx="8" fill="#F59E0B" stroke="#F59E0B" stroke-width="2"/>
+  <text x="1210" y="536" text-anchor="middle" font-size="12" font-weight="700" fill="#0A0A0F">Landing Admin</text>
+  <text x="1210" y="553" text-anchor="middle" font-size="9" fill="#0A0A0F">Usuarios · Tiendas · Billing</text>
+  <text x="1210" y="566" text-anchor="middle" font-size="9" fill="#0A0A0F">Notas · Tickets · Logs</text>
+
+  <!-- Legend -->
+  <rect x="30" y="640" width="580" height="120" rx="8" fill="#0F172A" stroke="#7C3AED30" stroke-width="1"/>
+  <text x="50" y="664" font-size="11" font-weight="700" fill="#FFFFFF">Leyenda</text>
+  <rect x="50" y="674" width="14" height="14" rx="3" fill="#10B98118" stroke="#10B981" stroke-width="1.5"/>
+  <text x="72" y="685" font-size="10" fill="#94A3B8">Camino exitoso</text>
+  <rect x="50" y="694" width="14" height="14" rx="3" fill="#EF444418" stroke="#EF4444" stroke-width="1.5"/>
+  <text x="72" y="705" font-size="10" fill="#94A3B8">Camino de error</text>
+  <rect x="50" y="714" width="14" height="14" rx="3" fill="#F59E0B18" stroke="#F59E0B" stroke-width="1.5"/>
+  <text x="72" y="725" font-size="10" fill="#94A3B8">Advertencia / SuperAdmin</text>
+  <rect x="50" y="734" width="14" height="14" rx="3" fill="#7C3AED20" stroke="#7C3AED" stroke-width="1.5"/>
+  <text x="72" y="745" font-size="10" fill="#94A3B8">Nodo de decisión</text>
+
+  <text x="220" y="685" font-size="10" fill="#94A3B8">JWT: RS256 · access 15min · refresh 7d · httpOnly cookie</text>
+  <text x="220" y="703" font-size="10" fill="#94A3B8">Bloqueo: 5 intentos → 423 · reset_login_attempts()</text>
+  <text x="220" y="721" font-size="10" fill="#94A3B8">Tenant: subdomain (web) | x-tenant-id header (Electron/Mobile)</text>
+  <text x="220" y="739" font-size="10" fill="#94A3B8">RBAC: role.level 0-100 · requireRoleLevel(N) middleware</text>
+  <text x="220" y="757" font-size="10" fill="#94A3B8">Audit: cada login registrado en AuditLog (acción, IP, user-agent)</text>
+
+  <!-- Footer -->
+  <text x="800" y="785" text-anchor="middle" font-size="10" fill="#374151">NeonHub — Trabajo Final de Grado Superior en Desarrollo de Aplicaciones Multiplataforma · 2025-2026</text>
+</svg>

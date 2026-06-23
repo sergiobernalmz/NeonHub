@@ -1,0 +1,55 @@
+**/.env
+**/.env.*
+!**/.env.example
+
+**/node_modules/
+node_modules/
+
+logs/
+**/logs/
+**/*.log
+
+backend/uploads/
+
+desktop-dist/
+
+**/dist/
+**/build/
+**/.astro/
+**/.expo/
+
+**/coverage/
+**/.nyc_output/
+
+**/.DS_Store
+**/Thumbs.db
+
+# SQLite database files
+**/*.db
+backend/public/updates/*.exe
+backend/public/updates/*.exe.blockmap
+backend/public/updates/latest.yml
+
+# Ignore all executables
+**/*.exe
+**/*.exe.blockmap
+
+# IDEs y editores
+.vscode/
+.idea/
+*.suo
+*.user
+*.swp
+*.swo
+*~
+
+# Claude Code / IA
+.claude/
+.cursor/
+.aider*
+.continue/
+.agents/
+
+# Plataformas de despliegue local
+.vercel/
+.netlify/

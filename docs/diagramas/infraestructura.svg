@@ -1,0 +1,111 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 900" font-family="system-ui, -apple-system, sans-serif">
+  <defs>
+    <marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M0 1 L10 5 L0 9 z" fill="#94A3B8"/>
+    </marker>
+  </defs>
+
+  <!-- Background -->
+  <rect width="900" height="900" fill="#0A0A0F"/>
+
+  <!-- Title -->
+  <text x="450" y="34" text-anchor="middle" font-size="20" font-weight="700" fill="#FFFFFF">Infraestructura — NeonHub</text>
+
+  <!-- ── INTERNET ── -->
+  <rect x="50" y="55" width="800" height="52" rx="8" fill="#0F172A" stroke="#94A3B8" stroke-width="1.5"/>
+  <text x="450" y="75" text-anchor="middle" font-size="13" font-weight="700" fill="#94A3B8">🌐  INTERNET</text>
+  <text x="450" y="95" text-anchor="middle" font-size="10" fill="#64748B">Usuarios finales · Peticiones HTTPS / WSS</text>
+
+  <!-- Arrow -->
+  <line x1="450" y1="107" x2="450" y2="127" stroke="#94A3B8" stroke-width="2" marker-end="url(#arr)"/>
+
+  <!-- ── CLOUDFLARE ── -->
+  <rect x="50" y="127" width="800" height="70" rx="8" fill="#F59E0B10" stroke="#F59E0B" stroke-width="2"/>
+  <text x="450" y="151" text-anchor="middle" font-size="14" font-weight="700" fill="#F59E0B">☁️  Cloudflare</text>
+  <text x="450" y="170" text-anchor="middle" font-size="10" fill="#FFFFFF">CDN Global · Protección DDoS · WAF · DNS Wildcard *.neonhub.es</text>
+  <text x="450" y="186" text-anchor="middle" font-size="10" fill="#94A3B8">SSL offload · Rate limiting global · Cache assets estáticos</text>
+
+  <!-- Arrow -->
+  <line x1="450" y1="197" x2="450" y2="217" stroke="#94A3B8" stroke-width="2" marker-end="url(#arr)"/>
+
+  <!-- ── MIKROTIK ── -->
+  <rect x="50" y="217" width="800" height="70" rx="8" fill="#06B6D410" stroke="#06B6D4" stroke-width="2"/>
+  <text x="450" y="241" text-anchor="middle" font-size="14" font-weight="700" fill="#06B6D4">🔀  MikroTik L009</text>
+  <text x="450" y="260" text-anchor="middle" font-size="10" fill="#FFFFFF">Router / Firewall · VLANs segregadas · Port forwarding :80 :443</text>
+  <text x="450" y="276" text-anchor="middle" font-size="10" fill="#94A3B8">Reglas iptables · Filtrado por IP · Log de accesos</text>
+
+  <!-- Arrow -->
+  <line x1="450" y1="287" x2="450" y2="307" stroke="#94A3B8" stroke-width="2" marker-end="url(#arr)"/>
+
+  <!-- ── NGINX PROXY MANAGER ── -->
+  <rect x="50" y="307" width="800" height="70" rx="8" fill="#10B98110" stroke="#10B981" stroke-width="2"/>
+  <text x="450" y="331" text-anchor="middle" font-size="14" font-weight="700" fill="#10B981">🔄  Nginx Proxy Manager</text>
+  <text x="450" y="350" text-anchor="middle" font-size="10" fill="#FFFFFF">Reverse Proxy · SSL Let's Encrypt auto-renew · Subdomain routing</text>
+  <text x="450" y="366" text-anchor="middle" font-size="10" fill="#94A3B8">neonhub.es → :5000 (Landing) · *.neonhub.es → :3000 (Frontend) · /api → :4000 (Backend)</text>
+
+  <!-- Arrow -->
+  <line x1="450" y1="377" x2="450" y2="397" stroke="#94A3B8" stroke-width="2" marker-end="url(#arr)"/>
+
+  <!-- ── VMWARE ESXI ── -->
+  <rect x="50" y="397" width="800" height="460" rx="10" fill="#7C3AED08" stroke="#7C3AED" stroke-width="2"/>
+
+  <!-- ESXi header -->
+  <text x="450" y="422" text-anchor="middle" font-size="14" font-weight="700" fill="#7C3AED">🖥️  VMware ESXi 6.7 — Dell PowerEdge R610</text>
+  <text x="450" y="440" text-anchor="middle" font-size="10" fill="#94A3B8">72 GB RAM · 12 núcleos · Ubuntu Server 22.04 LTS VM · SSD RAID</text>
+
+  <!-- PM2 row -->
+  <rect x="68" y="455" width="764" height="92" rx="8" fill="#0F172A" stroke="#10B98140" stroke-width="1.5"/>
+  <text x="100" y="474" font-size="10" font-weight="700" fill="#10B981" letter-spacing="1">PM2 CLUSTER — Node.js Processes</text>
+
+  <!-- PM2 boxes -->
+  <rect x="82"  y="480" width="230" height="57" rx="6" fill="#10B98112" stroke="#10B98170" stroke-width="1"/>
+  <text x="197" y="501" text-anchor="middle" font-size="12" font-weight="700" fill="#FFFFFF">Backend API</text>
+  <text x="197" y="518" text-anchor="middle" font-size="10" fill="#10B981">puerto :4000</text>
+  <text x="197" y="530" text-anchor="middle" font-size="9" fill="#94A3B8">Node.js · Express · 251 endpoints</text>
+
+  <rect x="328" y="480" width="230" height="57" rx="6" fill="#10B98112" stroke="#10B98170" stroke-width="1"/>
+  <text x="443" y="501" text-anchor="middle" font-size="12" font-weight="700" fill="#FFFFFF">Frontend SPA</text>
+  <text x="443" y="518" text-anchor="middle" font-size="10" fill="#10B981">puerto :3000</text>
+  <text x="443" y="530" text-anchor="middle" font-size="9" fill="#94A3B8">serve -s · React 19 · Vite build</text>
+
+  <rect x="574" y="480" width="230" height="57" rx="6" fill="#10B98112" stroke="#10B98170" stroke-width="1"/>
+  <text x="689" y="501" text-anchor="middle" font-size="12" font-weight="700" fill="#FFFFFF">Landing Page</text>
+  <text x="689" y="518" text-anchor="middle" font-size="10" fill="#10B981">puerto :5000</text>
+  <text x="689" y="530" text-anchor="middle" font-size="9" fill="#94A3B8">Astro 5 · SSR · node adapter</text>
+
+  <!-- Docker row -->
+  <rect x="68" y="560" width="764" height="102" rx="8" fill="#0F172A" stroke="#06B6D440" stroke-width="1.5"/>
+  <text x="100" y="579" font-size="10" font-weight="700" fill="#06B6D4" letter-spacing="1">DOCKER — Contenedores de Base de Datos</text>
+
+  <rect x="82"  y="588" width="358" height="63" rx="6" fill="#06B6D412" stroke="#06B6D470" stroke-width="1"/>
+  <text x="261" y="611" text-anchor="middle" font-size="12" font-weight="700" fill="#FFFFFF">PostgreSQL — neonhub_db</text>
+  <text x="261" y="628" text-anchor="middle" font-size="10" fill="#06B6D4">puerto :5433</text>
+  <text x="261" y="642" text-anchor="middle" font-size="9" fill="#94A3B8">Tiendas · Pedidos · Usuarios · Roles · Audit</text>
+
+  <rect x="454" y="588" width="358" height="63" rx="6" fill="#06B6D412" stroke="#06B6D470" stroke-width="1"/>
+  <text x="633" y="611" text-anchor="middle" font-size="12" font-weight="700" fill="#FFFFFF">PostgreSQL — landing_db</text>
+  <text x="633" y="628" text-anchor="middle" font-size="10" fill="#06B6D4">puerto :5434</text>
+  <text x="633" y="642" text-anchor="middle" font-size="9" fill="#94A3B8">Usuarios web · Sesiones · Leads · Notas</text>
+
+  <!-- n8n / Servicios row -->
+  <rect x="68" y="675" width="764" height="102" rx="8" fill="#0F172A" stroke="#F59E0B40" stroke-width="1.5"/>
+  <text x="100" y="694" font-size="10" font-weight="700" fill="#F59E0B" letter-spacing="1">SERVICIOS DE INTEGRACIÓN</text>
+
+  <rect x="82"  y="702" width="230" height="63" rx="6" fill="#F59E0B12" stroke="#F59E0B70" stroke-width="1"/>
+  <text x="197" y="724" text-anchor="middle" font-size="12" font-weight="700" fill="#FFFFFF">n8n</text>
+  <text x="197" y="741" text-anchor="middle" font-size="10" fill="#F59E0B">puerto :5678 · Docker</text>
+  <text x="197" y="755" text-anchor="middle" font-size="9" fill="#94A3B8">Workflows · Email · Alertas</text>
+
+  <rect x="328" y="702" width="230" height="63" rx="6" fill="#7C3AED12" stroke="#7C3AED70" stroke-width="1"/>
+  <text x="443" y="724" text-anchor="middle" font-size="12" font-weight="700" fill="#FFFFFF">Slack Webhooks</text>
+  <text x="443" y="741" text-anchor="middle" font-size="10" fill="#7C3AED">API externa</text>
+  <text x="443" y="755" text-anchor="middle" font-size="9" fill="#94A3B8">Alertas admin · Nuevos pedidos</text>
+
+  <rect x="574" y="702" width="230" height="63" rx="6" fill="#06B6D412" stroke="#06B6D470" stroke-width="1"/>
+  <text x="689" y="724" text-anchor="middle" font-size="12" font-weight="700" fill="#FFFFFF">SMTP</text>
+  <text x="689" y="741" text-anchor="middle" font-size="10" fill="#06B6D4">puerto :465 · TLS</text>
+  <text x="689" y="755" text-anchor="middle" font-size="9" fill="#94A3B8">Emails · Verificación · Facturas</text>
+
+  <!-- Footer -->
+  <text x="450" y="875" text-anchor="middle" font-size="10" fill="#374151">NeonHub — Trabajo Final de Grado Superior en Desarrollo de Aplicaciones Multiplataforma · 2025-2026</text>
+</svg>

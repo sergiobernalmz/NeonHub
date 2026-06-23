@@ -1,0 +1,149 @@
+{
+  "name": "WF3 — Soporte SLA · Tickets Críticos",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "minutes",
+              "minutesInterval": 5
+            }
+          ]
+        }
+      },
+      "id": "wf3s0001-0001-4000-8000-sla000000001",
+      "name": "Cron — cada 5 min",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1,
+      "position": [240, 300]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "https://neonhub.es/api/tickets/sla-check",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "x-admin-secret",
+              "value": "={{ $env.ADMIN_API_SECRET }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "wf3s0001-0002-4000-8000-sla000000002",
+      "name": "HTTP — GET tickets críticos",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 2,
+      "position": [460, 300]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "boolean": [
+            {
+              "value1": "={{ (Array.isArray($json.data) && $json.data.length > 0) || (Array.isArray($json) && $json.length > 0) }}",
+              "value2": true
+            }
+          ]
+        }
+      },
+      "id": "wf3s0001-0003-4000-8000-sla000000003",
+      "name": "IF — ¿hay tickets críticos?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [680, 300]
+    },
+    {
+      "parameters": {
+        "channel": "cobros-fallidos",
+        "text": "=⚠️ *Hay tickets críticos sin respuesta*\n\nSe han detectado *{{ Array.isArray($json.data) ? $json.data.length : $json.length }}* ticket(s) con estado *critical* sin respuesta.\n\n🔗 Revisar en: https://neonhub.es/admin",
+        "otherOptions": {}
+      },
+      "id": "wf3s0001-0004-4000-8000-sla000000004",
+      "name": "Slack — #cobros-fallidos",
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 1,
+      "position": [900, 160],
+      "credentials": {
+        "slackApi": {
+          "id": "1",
+          "name": "Slack account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "create",
+        "boardId": "TRELLO_BOARD_ID",
+        "listId": "TRELLO_LIST_ID",
+        "name": "=⚠️ Tickets críticos sin respuesta — {{ $now.toFormat('dd/MM/yyyy HH:mm') }}",
+        "description": "=Tickets críticos sin respuesta detectados automáticamente por el sistema SLA.\n\nCantidad: {{ Array.isArray($json.data) ? $json.data.length : $json.length }}\nFecha de detección: {{ $now.toFormat('dd/MM/yyyy HH:mm') }}\n\nRevisar en: https://neonhub.es/admin",
+        "additionalFields": {}
+      },
+      "id": "wf3s0001-0005-4000-8000-sla000000005",
+      "name": "Trello — Crear tarjeta",
+      "type": "n8n-nodes-base.trello",
+      "typeVersion": 1,
+      "position": [900, 400],
+      "credentials": {
+        "trelloApi": {
+          "id": "CONFIGURAR_CREDENCIAL_TRELLO",
+          "name": "CONFIGURAR CREDENCIAL TRELLO"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Cron — cada 5 min": {
+      "main": [
+        [
+          {
+            "node": "HTTP — GET tickets críticos",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP — GET tickets críticos": {
+      "main": [
+        [
+          {
+            "node": "IF — ¿hay tickets críticos?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF — ¿hay tickets críticos?": {
+      "main": [
+        [
+          {
+            "node": "Slack — #cobros-fallidos",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Trello — Crear tarjeta",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        []
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "wf3s0001-0000-4000-8000-sla000000000",
+  "id": "wf3-soporte-sla",
+  "meta": {
+    "templateCredsSetupCompleted": false
+  }
+}

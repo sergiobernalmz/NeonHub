@@ -1,0 +1,389 @@
+---
+import Layout from '../layouts/Layout.astro';
+import Navbar from '../components/Navbar.jsx';
+import Footer from '../components/Footer.astro';
+import { validateSession } from '../lib/auth';
+
+const sessionId = Astro.cookies.get('app_auth_token')?.value;
+const session = sessionId ? await validateSession(sessionId) : null;
+const user = session ? session.user : null;
+const dashboardUrl = user?.role === 'admin' ? '/admin' : '/dashboard';
+---
+
+<Layout
+  title="Contacto — NeonHub"
+  description="¿Tienes preguntas sobre NeonHub? Contacta con nuestro equipo. Soporte técnico, info comercial y más. Respondemos en 24-48h."
+  canonical="https://neonhub.es/contacto"
+>
+  <Navbar client:load user={user} />
+
+  <main class="min-h-screen bg-white dark:bg-slate-950 overflow-x-hidden">
+
+    <!-- ── HERO ─────────────────────────────────────────────────── -->
+    <section class="pt-36 pb-12 px-6 text-center relative">
+      <div class="absolute top-1/2 left-1/4 w-[500px] h-[400px] bg-violet-700/8 rounded-full blur-[120px] pointer-events-none -translate-y-1/2"></div>
+      <div class="absolute top-1/2 right-1/4 w-[400px] h-[300px] bg-indigo-600/8 rounded-full blur-[100px] pointer-events-none -translate-y-1/2"></div>
+
+      <div class="max-w-2xl mx-auto relative z-10">
+        <div id="contact-badge" class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-gray-100 dark:bg-white/5 border border-gray-200 dark:border-white/10 mb-6 text-xs text-gray-500 dark:text-slate-400 font-semibold tracking-wider uppercase" style="opacity:0">
+          <svg class="w-3 h-3 text-violet-500 dark:text-violet-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+          Contacto
+        </div>
+        <h1 id="contact-title" class="text-4xl md:text-5xl font-black text-gray-900 dark:text-white mb-4" style="opacity:0">
+          ¿En qué podemos<br>
+          <span class="text-transparent bg-clip-text bg-gradient-to-r from-violet-500 to-indigo-500 dark:from-violet-400 dark:to-indigo-400">ayudarte?</span>
+        </h1>
+        <p id="contact-sub" class="text-gray-500 dark:text-slate-400 text-lg" style="opacity:0">
+          Nuestro equipo responde en menos de 48 horas laborables.
+        </p>
+      </div>
+    </section>
+
+    <!-- ── MAIN CONTENT ──────────────────────────────────────────── -->
+    <section class="px-6 pb-32">
+      <div class="max-w-5xl mx-auto grid grid-cols-1 lg:grid-cols-5 gap-10 items-start">
+
+        <!-- Info columna izquierda -->
+        <aside class="contact-info lg:col-span-2 space-y-6" style="opacity:0">
+
+          <div class="contact-card rounded-2xl p-6 border">
+            <h2 class="text-lg font-bold text-gray-900 dark:text-white mb-5">Información de contacto</h2>
+            <ul class="space-y-5">
+              <li class="flex items-start gap-4">
+                <div class="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style="background:rgba(124,58,237,0.15);border:1px solid rgba(124,58,237,0.3)">
+                  <svg class="w-5 h-5 text-violet-500 dark:text-violet-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+                </div>
+                <div>
+                  <p class="text-xs text-gray-400 dark:text-slate-500 font-medium uppercase tracking-wider mb-0.5">Email</p>
+                  <a href="mailto:soporte@neonhub.es" class="text-gray-900 dark:text-white hover:text-violet-600 dark:hover:text-violet-300 transition-colors font-medium">soporte@neonhub.es</a>
+                </div>
+              </li>
+              <li class="flex items-start gap-4">
+                <div class="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style="background:rgba(124,58,237,0.15);border:1px solid rgba(124,58,237,0.3)">
+                  <svg class="w-5 h-5 text-violet-500 dark:text-violet-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                </div>
+                <div>
+                  <p class="text-xs text-gray-400 dark:text-slate-500 font-medium uppercase tracking-wider mb-0.5">Horario</p>
+                  <p class="text-gray-900 dark:text-white font-medium">Lunes–Viernes</p>
+                  <p class="text-gray-500 dark:text-slate-400 text-sm">9:00 – 18:00 (CET)</p>
+                </div>
+              </li>
+              <li class="flex items-start gap-4">
+                <div class="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style="background:rgba(124,58,237,0.15);border:1px solid rgba(124,58,237,0.3)">
+                  <svg class="w-5 h-5 text-violet-500 dark:text-violet-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                </div>
+                <div>
+                  <p class="text-xs text-gray-400 dark:text-slate-500 font-medium uppercase tracking-wider mb-0.5">Ubicación</p>
+                  <p class="text-gray-900 dark:text-white font-medium">Valencia, España</p>
+                </div>
+              </li>
+            </ul>
+          </div>
+
+          <div class="contact-card rounded-2xl p-6 border">
+            <h3 class="text-sm font-bold text-gray-900 dark:text-white mb-4">Tiempo de respuesta</h3>
+            <div class="space-y-3">
+              {[
+                { label: 'Soporte técnico', time: '< 24h', color: '#22c55e' },
+                { label: 'Info comercial',  time: '< 4h',  color: '#a78bfa' },
+                { label: 'Facturación',     time: '< 48h', color: '#fbbf24' },
+              ].map(item => (
+                <div class="flex items-center justify-between text-sm">
+                  <span class="text-gray-500 dark:text-slate-400">{item.label}</span>
+                  <span class="font-semibold" style={`color:${item.color}`}>{item.time}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+        </aside>
+
+        <!-- Formulario columna derecha -->
+        <div class="contact-form lg:col-span-3" style="opacity:0">
+          <div class="contact-card rounded-2xl p-8 border">
+
+            <!-- Estado éxito (oculto inicialmente) -->
+            <div id="success-state" class="hidden text-center py-8">
+              <div class="w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6" style="background:rgba(34,197,94,0.15);border:1px solid rgba(34,197,94,0.3)">
+                <svg class="w-10 h-10 text-green-500 dark:text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+              </div>
+              <h3 class="text-2xl font-bold text-gray-900 dark:text-white mb-3">¡Mensaje enviado!</h3>
+              <p class="text-gray-500 dark:text-slate-400">Nos pondremos en contacto contigo en menos de 48 horas laborables.</p>
+            </div>
+
+            <!-- Formulario -->
+            <form id="contact-form" class="space-y-5" novalidate>
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                <!-- Nombre -->
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-2">Nombre completo *</label>
+                  <input
+                    id="f-name" type="text" name="name" autocomplete="name" required
+                    placeholder="Tu nombre"
+                    class="contact-input w-full px-4 py-3 rounded-lg text-sm transition-all duration-300 focus:outline-none"
+                  />
+                  <p id="err-name" class="mt-1 text-xs text-red-500 dark:text-red-400 hidden"></p>
+                </div>
+                <!-- Email -->
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-2">Email *</label>
+                  <input
+                    id="f-email" type="email" name="email" autocomplete="email" required
+                    placeholder="tu@email.com"
+                    class="contact-input w-full px-4 py-3 rounded-lg text-sm transition-all duration-300 focus:outline-none"
+                  />
+                  <p id="err-email" class="mt-1 text-xs text-red-500 dark:text-red-400 hidden"></p>
+                </div>
+              </div>
+
+              <!-- Asunto -->
+              <div>
+                <label class="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-2">Asunto *</label>
+                <select
+                  id="f-subject" name="subject"
+                  class="contact-input w-full px-4 py-3 rounded-lg text-sm transition-all duration-300 focus:outline-none appearance-none cursor-pointer"
+                >
+                  <option value="">Selecciona un asunto…</option>
+                  <option value="Soporte técnico">Soporte técnico</option>
+                  <option value="Info comercial">Info comercial</option>
+                  <option value="Facturación">Facturación</option>
+                  <option value="Partnerships">Partnerships</option>
+                  <option value="Otro">Otro</option>
+                </select>
+                <p id="err-subject" class="mt-1 text-xs text-red-500 dark:text-red-400 hidden"></p>
+              </div>
+
+              <!-- Mensaje -->
+              <div>
+                <label class="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-2">Mensaje *</label>
+                <textarea
+                  id="f-message" name="message" rows="5" required minlength="10"
+                  placeholder="Cuéntanos en qué podemos ayudarte…"
+                  class="contact-input w-full px-4 py-3 rounded-lg text-sm transition-all duration-300 focus:outline-none resize-none"
+                ></textarea>
+                <p id="err-message" class="mt-1 text-xs text-red-500 dark:text-red-400 hidden"></p>
+              </div>
+
+              <!-- RGPD -->
+              <div class="flex items-start gap-3">
+                <input id="f-rgpd" type="checkbox" name="rgpd"
+                  class="mt-1 w-4 h-4 rounded border-gray-300 dark:border-white/20 bg-white dark:bg-white/5 accent-violet-500 cursor-pointer flex-shrink-0" />
+                <label for="f-rgpd" class="text-xs text-gray-500 dark:text-slate-400 cursor-pointer leading-relaxed">
+                  Acepto la <a href="/legal/privacidad" class="text-violet-600 dark:text-violet-400 hover:text-violet-500 dark:hover:text-violet-300 underline">política de privacidad</a>
+                  y el tratamiento de mis datos para gestionar mi consulta.
+                </label>
+              </div>
+              <p id="err-rgpd" class="text-xs text-red-500 dark:text-red-400 hidden"></p>
+
+              <!-- Error global -->
+              <div id="form-error" class="hidden p-3 rounded-lg text-red-600 dark:text-red-300 text-sm text-center" style="background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.3)"></div>
+
+              <!-- Submit -->
+              <button
+                id="submit-btn" type="submit"
+                class="w-full py-4 rounded-xl font-bold text-white text-sm transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] relative overflow-hidden"
+                style="background:linear-gradient(135deg,#7c3aed,#4f46e5);box-shadow:0 8px 30px rgba(124,58,237,0.35)"
+              >
+                <span id="btn-text">Enviar mensaje →</span>
+                <span id="btn-loading" class="hidden absolute inset-0 flex items-center justify-center gap-2">
+                  <svg class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/></svg>
+                  Enviando…
+                </span>
+              </button>
+            </form>
+          </div>
+        </div>
+
+      </div>
+    </section>
+  </main>
+
+  <section class="text-center py-16 px-5 border-t border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0b1120]">
+    <p class="text-gray-500 dark:text-slate-400 text-base mb-4">¿Prefieres probarlo directamente?</p>
+    {user ? (
+      <a href={dashboardUrl} class="inline-block px-7 py-3 rounded-lg font-semibold text-white text-sm transition-opacity hover:opacity-85" style="background:linear-gradient(135deg,#4f46e5,#7c3aed)">
+        Ir a mi dashboard →
+      </a>
+    ) : (
+      <a href="/register" class="inline-block px-7 py-3 rounded-lg font-semibold text-white text-sm transition-opacity hover:opacity-85" style="background:linear-gradient(135deg,#4f46e5,#7c3aed)">
+        Crear mi tienda gratis →
+      </a>
+    )}
+  </section>
+
+  <Footer />
+</Layout>
+
+<style>
+  /* Contact cards */
+  .contact-card {
+    background-color: #f9fafb;
+    border-color: #e5e7eb;
+  }
+  :global(.dark) .contact-card {
+    background-color: rgba(255, 255, 255, 0.03);
+    border-color: rgba(255, 255, 255, 0.08);
+  }
+
+  /* Form inputs / textarea / select */
+  .contact-input {
+    background: #fff;
+    border: 1px solid #d1d5db;
+    color: #111827;
+  }
+  .contact-input::placeholder {
+    color: #9ca3af;
+  }
+  :global(.dark) .contact-input {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: #fff;
+  }
+  :global(.dark) .contact-input::placeholder {
+    color: #64748b;
+  }
+</style>
+
+<script>
+  import { gsap } from 'gsap';
+
+  const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  // ── ANIMACIONES DE ENTRADA ─────────────────────────────────────
+  if (!reduced) {
+    gsap.set(['#contact-title', '#contact-sub'], { y: 30 });
+    gsap.set('.contact-info', { x: -50 });
+    gsap.set('.contact-form', { x: 50 });
+
+    const tl = gsap.timeline({ defaults: { ease: 'power3.out' } });
+    tl.to('#contact-badge', { opacity: 1, duration: 0.4 })
+      .to('#contact-title', { opacity: 1, y: 0, duration: 0.6 }, '-=0.2')
+      .to('#contact-sub',   { opacity: 1, y: 0, duration: 0.5 }, '-=0.3')
+      .to('.contact-info',  { opacity: 1, x: 0, duration: 0.7 }, '-=0.3')
+      .to('.contact-form',  { opacity: 1, x: 0, duration: 0.7 }, '-=0.6');
+  } else {
+    gsap.set(['#contact-badge','#contact-title','#contact-sub','.contact-info','.contact-form'], { opacity: 1 });
+  }
+
+  // ── BRILLO AL HACER FOCUS EN INPUTS ───────────────────────────
+  const isDark = () => document.documentElement.classList.contains('dark');
+
+  document.querySelectorAll<HTMLElement>('.contact-input').forEach(el => {
+    el.addEventListener('focus', () => {
+      gsap.to(el, { borderColor: 'rgba(167,139,250,0.6)', duration: 0.25 });
+    });
+    el.addEventListener('blur', () => {
+      const hasError = el.style.borderColor === 'rgb(239, 68, 68)';
+      if (!hasError) {
+        gsap.to(el, {
+          borderColor: isDark() ? 'rgba(255,255,255,0.1)' : '#d1d5db',
+          duration: 0.25
+        });
+      }
+    });
+  });
+
+  // ── ENVÍO DEL FORMULARIO ───────────────────────────────────────
+  const form      = document.getElementById('contact-form') as HTMLFormElement;
+  const btnText   = document.getElementById('btn-text')!;
+  const btnLoad   = document.getElementById('btn-loading')!;
+  const submitBtn = document.getElementById('submit-btn') as HTMLButtonElement;
+  const formError = document.getElementById('form-error')!;
+
+  function showFieldError(id: string, inputId: string, msg: string) {
+    const err = document.getElementById(id)!;
+    const inp = document.getElementById(inputId) as HTMLElement;
+    err.textContent = msg;
+    err.classList.toggle('hidden', !msg);
+    if (inp) gsap.to(inp, {
+      borderColor: msg ? '#ef4444' : (isDark() ? 'rgba(255,255,255,0.1)' : '#d1d5db'),
+      duration: 0.2
+    });
+  }
+
+  function validate(): boolean {
+    let ok = true;
+    const name    = (document.getElementById('f-name')    as HTMLInputElement).value.trim();
+    const email   = (document.getElementById('f-email')   as HTMLInputElement).value.trim();
+    const subject = (document.getElementById('f-subject') as HTMLSelectElement).value;
+    const message = (document.getElementById('f-message') as HTMLTextAreaElement).value.trim();
+    const rgpd    = (document.getElementById('f-rgpd')    as HTMLInputElement).checked;
+
+    if (!name) { showFieldError('err-name', 'f-name', 'El nombre es obligatorio'); ok = false; }
+    else { showFieldError('err-name', 'f-name', ''); }
+
+    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      showFieldError('err-email', 'f-email', 'Introduce un email válido'); ok = false;
+    } else { showFieldError('err-email', 'f-email', ''); }
+
+    if (!subject) { showFieldError('err-subject', 'f-subject', 'Selecciona un asunto'); ok = false; }
+    else { showFieldError('err-subject', 'f-subject', ''); }
+
+    if (!message || message.length < 10) {
+      showFieldError('err-message', 'f-message', 'El mensaje debe tener al menos 10 caracteres'); ok = false;
+    } else { showFieldError('err-message', 'f-message', ''); }
+
+    if (!rgpd) {
+      document.getElementById('err-rgpd')!.textContent = 'Debes aceptar la política de privacidad';
+      document.getElementById('err-rgpd')!.classList.remove('hidden');
+      ok = false;
+    } else {
+      document.getElementById('err-rgpd')!.classList.add('hidden');
+    }
+
+    return ok;
+  }
+
+  form?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    formError.classList.add('hidden');
+    if (!validate()) return;
+
+    // estado de carga mientras se envía
+    btnText.classList.add('hidden');
+    btnLoad.classList.remove('hidden');
+    submitBtn.disabled = true;
+
+    try {
+      const res = await fetch('/api/contact', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name:    (document.getElementById('f-name')    as HTMLInputElement).value.trim(),
+          email:   (document.getElementById('f-email')   as HTMLInputElement).value.trim(),
+          subject: (document.getElementById('f-subject') as HTMLSelectElement).value,
+          message: (document.getElementById('f-message') as HTMLTextAreaElement).value.trim(),
+        }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok || data.error) {
+        throw new Error(data.error || 'Error al enviar el mensaje');
+      }
+
+      // animación de éxito al enviar
+      gsap.to(form, {
+        opacity: 0, y: -20, duration: 0.4, ease: 'power2.in',
+        onComplete() {
+          form.classList.add('hidden');
+          const success = document.getElementById('success-state')!;
+          success.classList.remove('hidden');
+          gsap.fromTo(success,
+            { opacity: 0, scale: 0.9 },
+            { opacity: 1, scale: 1, duration: 0.5, ease: 'back.out(1.4)' }
+          );
+        },
+      });
+
+    } catch (err: any) {
+      formError.textContent = err.message || 'Error inesperado. Inténtalo de nuevo.';
+      formError.classList.remove('hidden');
+      gsap.fromTo(formError, { x: -6 }, { x: 0, duration: 0.4, ease: 'elastic.out(1, 0.3)' });
+    } finally {
+      btnText.classList.remove('hidden');
+      btnLoad.classList.add('hidden');
+      submitBtn.disabled = false;
+    }
+  });
+</script>

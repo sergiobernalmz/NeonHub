@@ -1,0 +1,154 @@
+{
+  "name": "WF-A — Activación de Empleados",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "employee-activation",
+        "responseMode": "onReceived",
+        "options": {}
+      },
+      "id": "a1b2c3d4-0001-4000-8000-100000000001",
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [240, 300],
+      "webhookId": "wh-a1b2c3d4-employee-activation-0001"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{ $json.email }}",
+              "operation": "isNotEmpty"
+            },
+            {
+              "value1": "={{ $json.store_name }}",
+              "operation": "isNotEmpty"
+            },
+            {
+              "value1": "={{ $json.activation_url }}",
+              "operation": "isNotEmpty"
+            }
+          ]
+        },
+        "combineOperation": "all"
+      },
+      "id": "a1b2c3d4-0001-4000-8000-100000000002",
+      "name": "IF — Validar Payload",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [460, 300]
+    },
+    {
+      "parameters": {
+        "fromEmail": "={{ $json.store_name + ' <soporte@neonhub.es>' }}",
+        "toEmail": "={{ $json.email }}",
+        "subject": "={{ 'Activa tu cuenta en ' + $json.store_name }}",
+        "emailType": "html",
+        "message": "=`<!DOCTYPE html><html lang='es'><head><meta charset='UTF-8'><meta name='viewport' content='width=device-width,initial-scale=1.0'><title>Activa tu cuenta en ${ $json.store_name }</title></head><body style='margin:0;padding:0;background:#0f172a;font-family:Arial,Helvetica,sans-serif;'><table width='100%' cellpadding='0' cellspacing='0' border='0' style='background:#0f172a;'><tr><td align='center' style='padding:48px 20px;'><table width='600' cellpadding='0' cellspacing='0' border='0' style='max-width:600px;width:100%;background:#1e293b;border-radius:16px;overflow:hidden;border:1px solid rgba(255,255,255,0.08);'><tr><td style='padding:44px 48px 40px;background:linear-gradient(135deg,#7c3aed 0%,#2563eb 100%);text-align:center;'><table width='100%' cellpadding='0' cellspacing='0' border='0'><tr><td style='text-align:center;'><div style='display:inline-block;width:52px;height:52px;background:rgba(255,255,255,0.15);border-radius:12px;margin-bottom:20px;line-height:52px;font-size:24px;'>👥</div><h1 style='margin:0 0 8px;color:#ffffff;font-size:26px;font-weight:700;letter-spacing:-0.5px;'>${ $json.store_name }</h1><p style='margin:0;color:rgba(255,255,255,0.7);font-size:14px;font-weight:400;'>Invitación al equipo</p></td></tr></table></td></tr><tr><td style='padding:44px 48px 40px;'><p style='margin:0 0 20px;color:#94a3b8;font-size:16px;line-height:1.75;'>Hola <strong style='color:#f1f5f9;'>${ $json.username }</strong>,</p><p style='margin:0 0 32px;color:#94a3b8;font-size:16px;line-height:1.75;'>Has sido invitado a unirte al equipo de <strong style='color:#f1f5f9;'>${ $json.store_name }</strong>. Haz clic en el botón de abajo para activar tu cuenta y establecer tu contraseña de acceso.</p><table cellpadding='0' cellspacing='0' border='0' width='100%'><tr><td align='center' style='padding-bottom:40px;'><a href='${ $json.activation_url }' style='display:inline-block;background:linear-gradient(135deg,#7c3aed,#2563eb);color:#ffffff;text-decoration:none;font-size:16px;font-weight:700;padding:18px 60px;border-radius:12px;letter-spacing:0.2px;'>✨ Activar mi cuenta</a></td></tr></table><div style='background:rgba(255,255,255,0.04);border-radius:10px;padding:20px 24px;margin-bottom:32px;border:1px solid rgba(255,255,255,0.07);'><p style='margin:0 0 8px;color:#64748b;font-size:13px;font-weight:500;text-transform:uppercase;letter-spacing:0.5px;'>¿El botón no funciona?</p><p style='margin:0;word-break:break-all;'><a href='${ $json.activation_url }' style='color:#818cf8;font-size:13px;text-decoration:none;'>${ $json.activation_url }</a></p></div><div style='background:rgba(124,58,237,0.08);border-radius:8px;padding:16px 20px;border-left:3px solid #7c3aed;'><p style='margin:0;color:#64748b;font-size:13px;line-height:1.6;'>⏱&nbsp; Este enlace caduca en <strong style='color:#a5b4fc;'>${ $json.expires_hours } horas</strong> desde que fue generado.</p></div></td></tr><tr><td style='padding:24px 48px;background:rgba(0,0,0,0.2);border-top:1px solid rgba(255,255,255,0.06);text-align:center;'><p style='margin:0 0 4px;color:#334155;font-size:12px;'>NeonHub</p><p style='margin:0;color:#334155;font-size:12px;'>Si no esperabas este email, puedes ignorarlo de forma segura.</p></td></tr></table></td></tr></table></body></html>`",
+        "options": {}
+      },
+      "id": "a1b2c3d4-0001-4000-8000-100000000003",
+      "name": "Send Email — Empleado",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2,
+      "position": [700, 180],
+      "credentials": {
+        "smtp": {
+          "id": "1",
+          "name": "SMTP NeonHub"
+        }
+      },
+      "notes": "CREDENCIAL: Crea una credencial SMTP en n8n con nombre 'SMTP NeonHub'. Host: smtp.buzondecorreo.com, Puerto: 465, SSL: true, Usuario y contraseña del email soporte@neonhub.es"
+    },
+    {
+      "parameters": {
+        "values": {
+          "string": [
+            {
+              "name": "error",
+              "value": "Payload inválido — faltan campos requeridos: email, store_name o activation_url"
+            },
+            {
+              "name": "payload_recibido",
+              "value": "={{ JSON.stringify($json) }}"
+            },
+            {
+              "name": "timestamp",
+              "value": "={{ new Date().toISOString() }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "a1b2c3d4-0001-4000-8000-100000000004",
+      "name": "Set — Error Payload",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 1,
+      "position": [700, 420]
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "IF — Validar Payload",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF — Validar Payload": {
+      "main": [
+        [
+          {
+            "node": "Send Email — Empleado",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Set — Error Payload",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "neonhub-wf-a-employee-activation-v1",
+  "meta": {
+    "templateCredsSetupCompleted": false,
+    "instanceId": "neonhub-n8n"
+  },
+  "tags": [
+    {
+      "name": "NeonHub"
+    }
+  ],
+  "_readme": {
+    "workflow": "WF-A — Activación de Empleados",
+    "trigger": "POST https://neonhub.n8nservidor.es/webhook/employee-activation",
+    "credencial_smtp": "Crear credencial SMTP en n8n: Ajustes → Credenciales → Nueva → SMTP. Host: smtp.buzondecorreo.com | Puerto: 465 | Seguridad: SSL/TLS | Usuario: soporte@neonhub.es | Nombre de la credencial: 'SMTP NeonHub'",
+    "estado": "INACTIVE — Revisar y activar manualmente",
+    "payload_esperado": {
+      "email": "empleado@gmail.com",
+      "username": "nombre_usuario",
+      "store_name": "NeonLabs",
+      "store_subdomain": "neonlabs",
+      "type": "employee_activation",
+      "token": "uuid",
+      "activation_url": "https://neonlabs.neonhub.es/activate?token=uuid",
+      "expires_hours": 48
+    }
+  }
+}

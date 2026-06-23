@@ -1,0 +1,76 @@
+---
+import Layout from '../layouts/Layout.astro';
+import { getEnterpriseConfig } from '../lib/adminApi';
+import Navbar from '../components/Navbar.jsx';
+import Hero from '../components/Hero.jsx';
+import Features from '../components/Features.jsx';
+import Pricing from '../components/Pricing.jsx';
+import Footer from '../components/Footer.astro';
+
+import { validateSession } from '../lib/auth';
+
+const sessionId = Astro.cookies.get('app_auth_token')?.value;
+const session = sessionId ? await validateSession(sessionId) : null;
+const user = session ? session.user : null;
+const dashboardUrl = user?.role === 'admin' ? '/admin' : '/dashboard';
+
+// Obtener config enterprise (puedes ajustar el storeId según tu lógica)
+let favicon = undefined;
+try {
+	const storeId = '1'; // los usuarios de landing_db no tienen store_id; hardcodeado para la config enterprise
+	const res = await getEnterpriseConfig(storeId);
+	if (res?.success && res.data?.branding?.favicon_url) {
+		favicon = res.data.branding.favicon_url;
+	}
+} catch {}
+---
+
+<Layout
+  title="NeonHub — Crea tu tienda online profesional"
+  description="NeonHub es la plataforma SaaS para lanzar y gestionar tu tienda online en minutos. Pagos Stripe, personalización completa, analytics y multi-tenant. Desde 29 €/mes."
+  canonical="https://neonhub.es/"
+  favicon={favicon}
+  jsonLd={{
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    "name": "NeonHub",
+    "description": "Plataforma SaaS para crear y gestionar tiendas online profesionales",
+    "url": "https://neonhub.es",
+    "applicationCategory": "BusinessApplication",
+    "operatingSystem": "Web",
+    "author": { "@type": "Organization", "name": "NeonLabs", "url": "https://neonhub.es" },
+    "offers": { "@type": "Offer", "price": "29", "priceCurrency": "EUR" }
+  }}
+>
+	<Navbar client:load user={user} />
+	<main>
+		<Hero client:load isLoggedIn={!!user} dashboardUrl={dashboardUrl} />
+		<Features client:visible />
+		<Pricing client:visible isAdmin={user?.role === 'admin'} />
+	</main>
+
+	<section style="background:linear-gradient(135deg,#4f46e5,#7c3aed);padding:80px 20px;text-align:center;">
+		<h2 style="color:#fff;font-size:clamp(28px,5vw,48px);font-weight:800;margin:0 0 16px;">
+			¿Listo para lanzar tu tienda?
+		</h2>
+		<p style="color:rgba(255,255,255,0.8);font-size:18px;margin:0 0 32px;">
+			Únete a los negocios que ya confían en NeonHub. Empieza gratis hoy.
+		</p>
+		{user ? (
+			<a href={dashboardUrl} style="display:inline-block;background:#fff;color:#4f46e5;padding:16px 40px;border-radius:12px;font-weight:700;font-size:18px;text-decoration:none;">
+				Ir a mi dashboard →
+			</a>
+		) : (
+			<>
+				<a href="/register" style="display:inline-block;background:#fff;color:#4f46e5;padding:16px 40px;border-radius:12px;font-weight:700;font-size:18px;text-decoration:none;transition:opacity .2s;" onmouseover="this.style.opacity='.9'" onmouseout="this.style.opacity='1'">
+					Crear mi tienda gratis →
+				</a>
+				<p style="color:rgba(255,255,255,0.6);font-size:13px;margin-top:16px;">
+					7 días gratis · Sin tarjeta de crédito
+				</p>
+			</>
+		)}
+	</section>
+
+	<Footer />
+</Layout>

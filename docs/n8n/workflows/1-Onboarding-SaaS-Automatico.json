@@ -1,0 +1,177 @@
+{
+  "name": "FINAL - Workflow 1: Onboarding SaaS Automático",
+  "_note": "DEAD CODE. Este workflow asume que Stripe llama directamente a n8n (path 'stripe-webhook-production'). La arquitectura real es Stripe → backend → n8n. Nadie llama a este path. Conservado como referencia del flujo de producción futuro cuando el provisioning automático esté completamente operativo.",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "stripe-webhook-production",
+        "options": {}
+      },
+      "name": "Stripe Webhook (checkout.session.completed)",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [
+        100,
+        300
+      ],
+      "id": "m74ie"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{$json.body.type}}",
+              "value2": "checkout.session.completed"
+            },
+            {
+              "value1": "={{$json.body.data.object.payment_status}}",
+              "value2": "paid"
+            }
+          ]
+        }
+      },
+      "name": "Verify Payment Paid",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [
+        300,
+        300
+      ],
+      "id": "hn88c"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "{{$env[\"NEONHUB_API_BASE\"]}}/api/billing/checkout-session",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "sessionId",
+              "value": "={{$json.body.data.object.id}}"
+            },
+            {
+              "name": "tenantName",
+              "value": "={{$json.body.data.object.metadata.tenant_name}}"
+            }
+          ]
+        },
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer {{$env[\"NEONHUB_API_KEY\"]}}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "name": "Provision in NeonHub",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 1,
+      "position": [
+        500,
+        200
+      ],
+      "id": "dn7pna"
+    },
+    {
+      "parameters": {
+        "fromEmail": "onboarding@neonhub.es",
+        "toEmail": "={{$(`Verify Payment Paid`).item.json.body.data.object.customer_details.email}}",
+        "subject": "🚀 ¡Bienvenido a NeonHub! Tu espacio está casi listo",
+        "text": "Hola {{$(`Verify Payment Paid`).item.json.body.data.object.customer_details.name}},\n\n¡Gracias por confiar en NeonHub!\n\nTu suscripción se ha confirmado correctamente y tu espacio de trabajo '{{$(`Verify Payment Paid`).item.json.body.data.object.metadata.tenant_name}}' está siendo provisionado.\n\nEn breve recibirás más instrucciones para acceder a tu panel de control.\n\nEl equipo de NeonHub.",
+        "html": "<html><body><h2>¡Hola {{$(`Verify Payment Paid`).item.json.body.data.object.customer_details.name}}! 👋</h2><p>¡Gracias por confiar en <strong>NeonHub</strong>!</p><p>Tu suscripción se ha confirmado correctamente y tu espacio de trabajo <strong>{{$(`Verify Payment Paid`).item.json.body.data.object.metadata.tenant_name}}</strong> está siendo provisionado.</p><p>En breve recibirás más instrucciones para acceder a tu panel de control.</p><br><p>Un saludo,<br><em>El equipo de NeonHub</em></p></body></html>",
+        "options": {}
+      },
+      "name": "Email Welcome",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 1,
+      "position": [
+        700,
+        100
+      ],
+      "id": "miepeg"
+    },
+    {
+      "parameters": {
+        "channel": "C01ABCDEFGH",
+        "text": "🚀 *¡NUEVO CLIENTE EN NEONHUB!* 🚀\n\n🎉 Se ha registrado un nuevo pago y se está aprovisionando el tenant.\n\n🏢 *Tenant:* `{{$node[\"Verify Payment Paid\"].json[\"body\"][\"data\"][\"object\"][\"metadata\"][\"tenant_name\"]}}`\n👤 *Cliente:* {{$node[\"Verify Payment Paid\"].json[\"body\"][\"data\"][\"object\"][\"customer_details\"][\"name\"]}}\n✉️ *Email:* {{$node[\"Verify Payment Paid\"].json[\"body\"][\"data\"][\"object\"][\"customer_details\"][\"email\"]}}\n💰 *Estado del pago:* Pagado ✅"
+      },
+      "name": "Slack Notification",
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 1,
+      "position": [
+        700,
+        300
+      ],
+      "id": "n39a7f"
+    },
+    {
+      "parameters": {
+        "text": "ALERTA: Falla en Provisioning o Pago Incompleto de {{$json.body.data.object.metadata.tenant_name}}"
+      },
+      "name": "Slack Alert (Failed)",
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 1,
+      "position": [
+        500,
+        450
+      ],
+      "id": "ybbap"
+    }
+  ],
+  "connections": {
+    "Stripe Webhook (checkout.session.completed)": {
+      "main": [
+        [
+          {
+            "node": "Verify Payment Paid",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Verify Payment Paid": {
+      "main": [
+        [
+          {
+            "node": "Provision in NeonHub",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Slack Alert (Failed)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Provision in NeonHub": {
+      "main": [
+        [
+          {
+            "node": "Email Welcome",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Slack Notification",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {},
+  "meta": {},
+  "id": "epg9gm"
+}

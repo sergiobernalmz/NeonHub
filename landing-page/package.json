@@ -1,0 +1,36 @@
+{
+  "name": "landing-page",
+  "type": "module",
+  "version": "0.0.1",
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "astro": "astro"
+  },
+  "dependencies": {
+    "@astrojs/db": "^0.18.3",
+    "@astrojs/node": "^9.5.1",
+    "@astrojs/react": "^4.4.2",
+    "@tailwindcss/vite": "^4.1.17",
+    "astro": "^5.16.1",
+    "bcryptjs": "^3.0.3",
+    "clsx": "^2.1.1",
+    "framer-motion": "^12.23.24",
+    "gsap": "^3.14.2",
+    "lucide-react": "^0.555.0",
+    "nodemailer": "^8.0.5",
+    "pg": "^8.20.0",
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0",
+    "socket.io": "^4.8.3",
+    "socket.io-client": "^4.8.3",
+    "tailwind-merge": "^3.4.0",
+    "tailwindcss": "^4.1.17"
+  },
+  "devDependencies": {
+    "@types/bcryptjs": "^2.4.6",
+    "@types/nodemailer": "^8.0.0",
+    "sharp": "^0.34.5"
+  }
+}

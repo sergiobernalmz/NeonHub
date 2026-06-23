@@ -1,0 +1,48 @@
+---
+import Layout from '../layouts/Layout.astro';
+import Navbar from '../components/Navbar.jsx';
+import Footer from '../components/Footer.astro';
+const url = new URL(Astro.request.url);
+const token = url.searchParams.get('token');
+let verified = false;
+let error = '';
+
+if (token) {
+  try {
+    const res = await fetch(new URL('/api/verify-email', Astro.url.origin), {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ token })
+    });
+    const result = await res.json();
+    if (result.success) {
+      verified = true;
+    } else {
+      error = result.message || 'Token de verificación inválido o expirado.';
+    }
+  } catch {
+    error = 'Error al verificar el correo. Inténtalo de nuevo.';
+  }
+} else {
+  error = 'Token de verificación no proporcionado.';
+}
+---
+
+<Layout title="Verificar correo — NeonHub" noindex={true}>
+  <Navbar client:load />
+  <main class="min-h-screen flex flex-col items-center justify-center bg-white dark:bg-slate-950 px-4 py-24">
+    <div class="bg-gray-50 dark:bg-white/10 border border-gray-200 dark:border-white/10 rounded-2xl p-8 max-w-lg w-full text-center">
+      <h1 class="text-3xl font-bold mb-4 text-gray-900 dark:text-white">Verificación de correo</h1>
+      {verified && !error && (
+        <>
+          <p class="text-green-600 dark:text-green-400 text-lg font-semibold mb-4">¡Tu correo ha sido verificado correctamente!</p>
+          <a href="/login" class="inline-block mt-6 px-6 py-3 bg-violet-600 hover:bg-violet-700 text-white font-bold rounded-lg transition-colors">Iniciar sesión</a>
+        </>
+      )}
+      {error && (
+        <p class="text-red-500 dark:text-red-400 text-lg font-semibold mb-4">{error}</p>
+      )}
+    </div>
+  </main>
+  <Footer />
+</Layout>
