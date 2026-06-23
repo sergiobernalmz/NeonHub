@@ -1,4 +1,4 @@
-version: '3.8'
+name: neonhub
 
 services:
   # ===========================================
@@ -14,7 +14,7 @@ services:
       POSTGRES_DB: neonhub_db
       PGDATA: /var/lib/postgresql/data/pgdata
     volumes:
-      - neonhub_postgres_data:/var/lib/postgresql/data
+      - postgres_data:/var/lib/postgresql/data
     ports:
       - "127.0.0.1:5433:5432"
     healthcheck:
@@ -23,7 +23,7 @@ services:
       timeout: 5s
       retries: 5
     networks:
-      - neonhub-network
+      - network
 
   # ===========================================
   # PostgreSQL Database for Landing Page
@@ -38,7 +38,7 @@ services:
       POSTGRES_DB: landing_db
       PGDATA: /var/lib/postgresql/data/pgdata
     volumes:
-      - neonhub_landing_postgres_data:/var/lib/postgresql/data
+      - landing_postgres_data:/var/lib/postgresql/data
     ports:
       - "127.0.0.1:5434:5432"
     healthcheck:
@@ -47,7 +47,7 @@ services:
       timeout: 5s
       retries: 5
     networks:
-      - neonhub-network
+      - network
 
 
   # ===========================================
@@ -79,7 +79,7 @@ services:
       - ./backend/uploads:/app/uploads
       - ./backend/logs:/app/logs
     networks:
-      - neonhub-network
+      - network
 
   # ===========================================
   # Frontend (Production Build)
@@ -93,14 +93,14 @@ services:
   #   ports:
   #     - "5173:80"
   #   networks:
-  #     - neonhub-network
+  #     - network
 
 volumes:
-  neonhub_postgres_data:
+  postgres_data:
     driver: local
-  neonhub_landing_postgres_data:
+  landing_postgres_data:
     driver: local
 
 networks:
-  neonhub-network:
+  network:
     driver: bridge
