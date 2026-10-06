@@ -151,21 +151,43 @@ pm2 startup       # configura el arranque automático con el sistema
 
 ### Actualización (deploy de nueva versión)
 
+Hay dos formas de actualizar tras un `git push` a `main` desde tu máquina de desarrollo:
+
+#### Opción A — Menú interactivo (recomendada, control manual)
+
 ```bash
 cd /home/sergio/TrabajoFinalCursoDAM
+./neonhub.sh
+# → opción 15) Actualizar desde GitHub (pull + deploy)
+```
 
-# 1. Obtener cambios
+Hace `git pull --ff-only` + `npm install` (backend/frontend/landing) + migraciones + rebuild + `pm2 reload`. Aborta si hay cambios locales sin commitear o si el pull no es fast-forward.
+
+#### Opción B — Automático al hacer `git pull` (zero-touch)
+
+Setup único en el servidor (una sola vez):
+
+```bash
+git config core.hooksPath .githooks
+```
+
+A partir de ahí, cualquier `git pull origin main` dispara `.githooks/post-merge`, que instala dependencias, corre migraciones y reconstruye **solo lo que cambió**, y recarga PM2 automáticamente. No hace falta nada más que:
+
+```bash
+cd /home/sergio/TrabajoFinalCursoDAM
 git pull origin main
+```
 
-# 2. Actualizar dependencias si cambiaron los package.json
-cd backend && npm install --omit=dev && cd ..
-cd frontend && npm install && cd ..
+> **Importante:** el build de frontend aborta si no existe `frontend/.env.production` en el servidor (guard añadido para evitar que Vite compile con `localhost` hardcodeado). Verifica que ese archivo existe antes del primer pull con este mecanismo — cópialo desde `frontend/.env.example` con los valores de producción (`VITE_API_BASE=/api`, `VITE_TENANT_BASE_DOMAIN=neonhub.es`, etc.) si no estuviera ya.
 
-# 3. Re-builds necesarios (solo los servicios que cambiaron)
-cd frontend && npm run build && cd ..
-cd landing-page && npm run build && cd ..
+#### Manual (equivalente, para debugging paso a paso)
 
-# 4. Recargar procesos PM2 (zero-downtime para cluster)
+```bash
+cd /home/sergio/TrabajoFinalCursoDAM
+git pull origin main
+cd backend && npm install --omit=dev && npm run migrate && cd ..
+cd frontend && npm install && npm run build && cd ..
+cd landing-page && npm install && npm run build && cd ..
 pm2 reload neonhub-backend
 pm2 restart neonhub-frontend neonhub-landing
 ```

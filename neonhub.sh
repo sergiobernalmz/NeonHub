@@ -185,6 +185,47 @@ restart_neonhub() {
     pm2 status
 }
 
+update_from_git() {
+    echo -e "\n${BLUE}⬇️  Actualizando desde GitHub...${NC}"
+    cd "$ROOT_PATH" || exit 1
+
+    local branch
+    branch="$(git rev-parse --abbrev-ref HEAD)"
+
+    if [ -n "$(git status --porcelain)" ]; then
+        print_err "Hay cambios locales sin commitear en $branch. Aborto para no perder trabajo."
+        print_err "Revisa con 'git status' antes de actualizar."
+        return 1
+    fi
+
+    print_ok "Rama actual: $branch"
+    if ! git pull --ff-only origin "$branch"; then
+        print_err "git pull --ff-only falló (¿rama divergente?). Resuelve manualmente con 'git pull' o 'git fetch && git reset --hard origin/$branch'."
+        return 1
+    fi
+
+    echo -e "\n${BLUE}📦 Instalando dependencias (backend, frontend, landing)...${NC}"
+    (cd "$ROOT_PATH/backend" && npm install --omit=dev) || print_warn "npm install backend falló"
+    (cd "$ROOT_PATH/frontend" && npm install) || print_warn "npm install frontend falló"
+    (cd "$ROOT_PATH/landing-page" && npm install) || print_warn "npm install landing falló"
+
+    echo -e "\n${BLUE}🗄️  Ejecutando migraciones pendientes...${NC}"
+    (cd "$ROOT_PATH/backend" && npm run migrate) || print_err "Migraciones fallaron — revisa antes de continuar"
+
+    build_frontend || { print_err "Build de frontend abortado (ver aviso de .env.production arriba)"; return 1; }
+    build_landing || print_warn "Build de landing falló"
+
+    echo -e "\n${BLUE}♻️  Recargando PM2...${NC}"
+    load_env
+    check_required_env_production
+    pm2 reload "$PM2_CONFIG" --env production --update-env
+    pm2 save
+
+    echo ""
+    print_ok "Actualización completa desde GitHub"
+    pm2 status
+}
+
 stop_neonhub() {
     echo -e "\n${YELLOW}⏹ Deteniendo NeonHub...${NC}"
     cd "$ROOT_PATH" || exit 1
@@ -362,6 +403,7 @@ show_menu() {
     echo -e "${CYAN}12${NC}) 🔄 Reiniciar bases de datos (Docker)"
     echo -e "${YELLOW}13${NC}) 🐳 Ver estado de Docker"
     echo -e "${CYAN}14${NC}) 📦 Release app Electron (nueva versión)"
+    echo -e "${GREEN}15${NC}) ⬇️  Actualizar desde GitHub (pull + deploy)"
     echo -e "${RED}0${NC}) ❌ Salir"
     echo ""
 }
@@ -371,7 +413,7 @@ main() {
 
     while true; do
         show_menu
-        read -r -p "Selecciona opción [0-14]: " choice
+        read -r -p "Selecciona opción [0-15]: " choice
         case "$choice" in
             1) start_neonhub; wait_key ;;
             2) start_full_deploy; wait_key ;;
@@ -387,6 +429,7 @@ main() {
             12) restart_db; wait_key ;;
             13) show_docker_status; wait_key ;;
             14) release_electron; wait_key ;;
+            15) update_from_git; wait_key ;;
             0|q|Q) echo -e "\n${GREEN}👋 Saliendo...${NC}\n"; exit 0 ;;
             *) print_err "Opción no válida"; sleep 1 ;;
         esac
