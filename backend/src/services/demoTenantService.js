@@ -131,8 +131,23 @@ class DemoTenantService {
     return rows.length > 0;
   }
 
+  async _ensureStoreExists() {
+    const [rows] = await sequelize.query(
+      "SELECT id FROM stores WHERE id = :sid",
+      { replacements: { sid: SID } }
+    );
+    if (rows.length > 0) return;
+    console.log('📦 [Demo] Creando fila stores...');
+    await sequelize.query(
+      `INSERT INTO stores (id, name, subdomain, is_active, settings, plan_id, trial_plan, created_at, updated_at)
+       VALUES (:sid, 'Demo Sostenible', 'demo', true, '{}', 'installation', 'installation', NOW(), NOW())`,
+      { replacements: { sid: SID } }
+    );
+  }
+
   async seedDemoTenant() {
     try {
+      await this._ensureStoreExists();
       const snap = this._loadSnapshot();
       if (!snap || !(await this._seedExists())) {
         console.log('⚠️  [Demo] Snapshot no encontrado. Ejecuta: node src/database/seeds/demo-store-seed.js');

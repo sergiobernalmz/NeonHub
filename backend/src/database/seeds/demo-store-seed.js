@@ -257,6 +257,15 @@ async function seed() {
   try {
     const run = (q, r) => seq.query(q, { replacements: r, transaction: t });
 
+    // 0. Ensure store row exists (idempotent)
+    console.log('🏪 Ensuring demo store row exists...');
+    await seq.query(
+      `INSERT INTO stores (id, name, subdomain, is_active, plan_id, trial_plan, created_at, updated_at)
+       VALUES (:sid, 'Demo Sostenible', 'demo', true, 'installation', 'installation', NOW(), NOW())
+       ON CONFLICT (id) DO NOTHING`,
+      { replacements: { sid: DEMO_STORE_ID } }
+    );
+
     // 1. Remove old demoTenantService categories & products (not seed-marked)
     console.log('🧹 Cleaning old placeholder data...');
     const [oldCats] = await run(
