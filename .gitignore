@@ -45,6 +45,7 @@ backend/public/updates/latest.yml
 
 # Claude Code / IA
 .claude/
+.opencode/
 .cursor/
 .aider*
 .continue/
