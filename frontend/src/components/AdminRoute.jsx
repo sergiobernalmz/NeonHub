@@ -7,7 +7,7 @@ const AdminRoute = ({ children }) => {
   if (loading) return null
 
   const isAdmin = user?.roles?.some(role =>
-    ['admin', 'superadmin'].includes(role.name) || role.level >= 40
+    ['ceo', 'admin', 'superadmin'].includes(role.name) || role.level >= 40
   )
 
   // los clientes y usuarios sin sesión vuelven a la tienda
