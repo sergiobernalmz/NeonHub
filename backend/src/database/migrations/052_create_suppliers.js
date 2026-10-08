@@ -2,7 +2,10 @@
 
 module.exports = {
   up: async (queryInterface, Sequelize) => {
-    const tableDesc = await queryInterface.describeTable('suppliers');
+    let tableDesc = {};
+    try {
+      tableDesc = await queryInterface.describeTable('suppliers');
+    } catch (_) {}
     if (tableDesc.id) {
       console.log('suppliers table already exists, skipping');
       return;

@@ -2,7 +2,10 @@
 
 module.exports = {
   up: async (queryInterface, Sequelize) => {
-    const tableDesc = await queryInterface.describeTable('notifications');
+    let tableDesc = {};
+    try {
+      tableDesc = await queryInterface.describeTable('notifications');
+    } catch (_) {}
     if (tableDesc.id) {
       console.log('notifications table already exists, skipping');
       return;
