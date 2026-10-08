@@ -1,0 +1,816 @@
+---
+import {
+  PLANS,
+  FEATURES,
+  HOME_FAQ,
+  HOW_IT_WORKS,
+  HOME_SEO,
+  SITE,
+  NAV_LINKS,
+  CTA_BAND,
+  PLANS_NOTE,
+  HOME_JSONLD,
+  HERO,
+} from "../../data/home-content.ts";
+
+const accentColor = "#2d5016";
+---
+
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{HOME_SEO.title} | NeonHub</title>
+    <meta name="description" content={HOME_SEO.description} />
+    <meta name="robots" content="noindex, nofollow" />
+    <link rel="canonical" href={HOME_SEO.canonical} />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&family=Playfair+Display:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <script type="application/ld+json">
+      {JSON.stringify({
+        "@context": "https://schema.org",
+        "@graph": [
+          HOME_JSONLD.organization,
+          HOME_JSONLD.website,
+          {
+            "@context": "https://schema.org",
+            "@type": "WebPage",
+            name: HOME_SEO.title,
+            url: HOME_SEO.canonical,
+          },
+          {
+            "@context": "https://schema.org",
+            "@type": "AggregateOffer",
+            name: "NeonHub Planes",
+            offerCount: 3,
+            lowPrice: 29,
+            highPrice: 79,
+            priceCurrency: "EUR",
+            offer: [
+              {
+                "@type": "Offer",
+                name: "Plan Esencial",
+                price: "499",
+                priceCurrency: "EUR",
+              },
+              {
+                "@type": "Offer",
+                name: "Plan Profesional",
+                price: "999",
+                priceCurrency: "EUR",
+              },
+              {
+                "@type": "Offer",
+                name: "Plan Premium",
+                price: "1499",
+                priceCurrency: "EUR",
+              },
+            ],
+          },
+        ],
+      })}
+    </script>
+    <style>
+      :root {
+        --bg: #fafaf8;
+        --bg-warm: #f5f4f0;
+        --text: #1a1a1a;
+        --text-muted: #5a5a5a;
+        --accent: #2d5016;
+        --accent-light: #4a7a2a;
+        --border: #e0dfd9;
+        --card-bg: #ffffff;
+        --font-serif: "Playfair Display", Georgia, serif;
+        --font-sans: "DM Sans", system-ui, sans-serif;
+      }
+
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      html {
+        scroll-behavior: smooth;
+      }
+
+      body {
+        font-family: var(--font-sans);
+        background-color: var(--bg);
+        color: var(--text);
+        line-height: 1.6;
+        font-size: 16px;
+      }
+
+      h1,
+      h2,
+      h3,
+      h4 {
+        font-family: var(--font-serif);
+        font-weight: 600;
+        line-height: 1.2;
+      }
+
+      a {
+        color: inherit;
+        text-decoration: none;
+      }
+
+      .container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 0 24px;
+      }
+
+      /* Navbar */
+      .navbar {
+        background: var(--bg);
+        border-bottom: 1px solid var(--border);
+        padding: 20px 0;
+        position: sticky;
+        top: 0;
+        z-index: 100;
+      }
+
+      .navbar-inner {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      .navbar-logo {
+        font-family: var(--font-serif);
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: var(--text);
+      }
+
+      .navbar-links {
+        display: flex;
+        gap: 32px;
+        list-style: none;
+      }
+
+      .navbar-links a {
+        font-size: 0.9rem;
+        color: var(--text-muted);
+        transition: color 0.2s;
+      }
+
+      .navbar-links a:hover {
+        color: var(--accent);
+      }
+
+      /* Hero */
+      .hero {
+        padding: 100px 0 80px;
+        text-align: center;
+      }
+
+      .hero h1 {
+        font-size: 3.25rem;
+        font-weight: 700;
+        margin-bottom: 24px;
+        max-width: 800px;
+        margin-left: auto;
+        margin-right: auto;
+        letter-spacing: -0.02em;
+      }
+
+      .hero-subtitle {
+        font-size: 1.2rem;
+        color: var(--text-muted);
+        max-width: 600px;
+        margin: 0 auto 40px;
+        line-height: 1.7;
+      }
+
+      .hero-buttons {
+        display: flex;
+        gap: 16px;
+        justify-content: center;
+        flex-wrap: wrap;
+        margin-bottom: 20px;
+      }
+
+      .btn {
+        display: inline-block;
+        padding: 14px 28px;
+        font-size: 0.95rem;
+        font-weight: 500;
+        border-radius: 4px;
+        transition: all 0.2s;
+        cursor: pointer;
+      }
+
+      .btn-primary {
+        background: var(--accent);
+        color: #ffffff;
+        border: 1px solid var(--accent);
+      }
+
+      .btn-primary:hover {
+        background: var(--accent-light);
+        border-color: var(--accent-light);
+      }
+
+      .btn-secondary {
+        background: transparent;
+        color: var(--text);
+        border: 1px solid var(--border);
+      }
+
+      .btn-secondary:hover {
+        border-color: var(--text-muted);
+      }
+
+      .hero-microcopy {
+        font-size: 0.8rem;
+        color: var(--text-muted);
+      }
+
+      /* Features */
+      .features {
+        padding: 80px 0;
+        background: var(--bg);
+      }
+
+      .section-title {
+        font-size: 2rem;
+        text-align: center;
+        margin-bottom: 48px;
+      }
+
+      .features-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 24px;
+      }
+
+      .feature-card {
+        background: var(--card-bg);
+        border: 1px solid var(--border);
+        border-radius: 4px;
+        padding: 32px;
+        transition: border-color 0.2s;
+      }
+
+      .feature-card:hover {
+        border-color: var(--accent);
+      }
+
+      .feature-card a {
+        display: block;
+      }
+
+      .feature-icon {
+        width: 40px;
+        height: 40px;
+        margin-bottom: 20px;
+        color: var(--accent);
+      }
+
+      .feature-icon svg {
+        width: 100%;
+        height: 100%;
+      }
+
+      .feature-card h3 {
+        font-size: 1.1rem;
+        margin-bottom: 12px;
+        font-family: var(--font-serif);
+      }
+
+      .feature-card p {
+        font-size: 0.9rem;
+        color: var(--text-muted);
+        line-height: 1.6;
+      }
+
+      /* How It Works */
+      .how-it-works {
+        padding: 80px 0;
+        background: var(--bg-warm);
+      }
+
+      .steps {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 48px;
+        position: relative;
+      }
+
+      .step {
+        text-align: center;
+      }
+
+      .step-number {
+        font-family: var(--font-serif);
+        font-size: 4rem;
+        font-weight: 700;
+        color: var(--border);
+        line-height: 1;
+        margin-bottom: 16px;
+      }
+
+      .step h3 {
+        font-size: 1.1rem;
+        margin-bottom: 12px;
+      }
+
+      .step p {
+        font-size: 0.9rem;
+        color: var(--text-muted);
+      }
+
+      /* Pricing */
+      .pricing {
+        padding: 80px 0;
+        background: var(--bg);
+      }
+
+      .pricing-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 24px;
+        margin-bottom: 24px;
+      }
+
+      .plan-card {
+        background: var(--card-bg);
+        border: 1px solid var(--border);
+        border-radius: 4px;
+        padding: 32px;
+        position: relative;
+      }
+
+      .plan-card.featured {
+        border-left: 3px solid var(--accent);
+      }
+
+      .plan-card h3 {
+        font-size: 1.25rem;
+        margin-bottom: 8px;
+      }
+
+      .plan-subtitle {
+        font-size: 0.85rem;
+        color: var(--text-muted);
+        margin-bottom: 24px;
+        min-height: 40px;
+      }
+
+      .plan-price {
+        margin-bottom: 8px;
+      }
+
+      .plan-price-initial {
+        font-size: 2rem;
+        font-weight: 700;
+        font-family: var(--font-serif);
+      }
+
+      .plan-price-label {
+        font-size: 0.75rem;
+        color: var(--text-muted);
+        display: block;
+      }
+
+      .plan-price-monthly {
+        font-size: 0.9rem;
+        color: var(--text-muted);
+        margin-bottom: 24px;
+      }
+
+      .plan-features {
+        list-style: none;
+        margin-bottom: 24px;
+      }
+
+      .plan-features li {
+        font-size: 0.85rem;
+        padding: 8px 0;
+        border-bottom: 1px solid var(--border);
+        display: flex;
+        align-items: flex-start;
+        gap: 8px;
+      }
+
+      .plan-features li:last-child {
+        border-bottom: none;
+      }
+
+      .plan-features li::before {
+        content: "—";
+        color: var(--accent);
+        flex-shrink: 0;
+      }
+
+      .plan-card .btn {
+        width: 100%;
+        text-align: center;
+      }
+
+      .plans-note {
+        font-size: 0.75rem;
+        color: var(--text-muted);
+        text-align: center;
+        max-width: 600px;
+        margin: 0 auto;
+      }
+
+      /* FAQ */
+      .faq {
+        padding: 80px 0;
+        background: var(--bg-warm);
+      }
+
+      .faq-list {
+        max-width: 700px;
+        margin: 0 auto;
+      }
+
+      .faq-item {
+        border-bottom: 1px solid var(--border);
+        padding: 20px 0;
+      }
+
+      .faq-item:first-child {
+        border-top: 1px solid var(--border);
+      }
+
+      .faq-question {
+        font-size: 1rem;
+        font-weight: 600;
+        cursor: pointer;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-family: var(--font-serif);
+      }
+
+      .faq-question::after {
+        content: "+";
+        font-size: 1.25rem;
+        color: var(--accent);
+        transition: transform 0.2s;
+      }
+
+      .faq-item.open .faq-question::after {
+        transform: rotate(45deg);
+      }
+
+      .faq-answer {
+        font-size: 0.9rem;
+        color: var(--text-muted);
+        margin-top: 12px;
+        line-height: 1.7;
+        display: none;
+      }
+
+      .faq-item.open .faq-answer {
+        display: block;
+      }
+
+      /* CTA Band */
+      .cta-band {
+        padding: 80px 0;
+        background: var(--bg-warm);
+        text-align: center;
+      }
+
+      .cta-band h2 {
+        font-size: 2rem;
+        margin-bottom: 16px;
+      }
+
+      .cta-band p {
+        font-size: 1rem;
+        color: var(--text-muted);
+        margin-bottom: 32px;
+      }
+
+      /* Footer */
+      .footer {
+        padding: 48px 0;
+        background: var(--bg);
+        border-top: 1px solid var(--border);
+      }
+
+      .footer-inner {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 24px;
+      }
+
+      .footer-logo {
+        font-family: var(--font-serif);
+        font-size: 1.25rem;
+        font-weight: 700;
+      }
+
+      .footer-links {
+        display: flex;
+        gap: 24px;
+        list-style: none;
+      }
+
+      .footer-links a {
+        font-size: 0.85rem;
+        color: var(--text-muted);
+        transition: color 0.2s;
+      }
+
+      .footer-links a:hover {
+        color: var(--accent);
+      }
+
+      .footer-copy {
+        font-size: 0.8rem;
+        color: var(--text-muted);
+        width: 100%;
+        text-align: center;
+        margin-top: 16px;
+      }
+
+      @media (max-width: 768px) {
+        .navbar-links {
+          display: none;
+        }
+
+        .hero h1 {
+          font-size: 2.25rem;
+        }
+
+        .features-grid,
+        .pricing-grid,
+        .steps {
+          grid-template-columns: 1fr;
+        }
+
+        .footer-inner {
+          flex-direction: column;
+          text-align: center;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Navbar -->
+    <nav class="navbar">
+      <div class="container navbar-inner">
+        <a href="/" class="navbar-logo">NeonHub</a>
+        <ul class="navbar-links">
+          {NAV_LINKS.map((link) => (
+            <li>
+              <a href={link.href}>{link.label}</a>
+            </li>
+          ))}
+        </ul>
+      </div>
+    </nav>
+
+    <!-- Hero -->
+    <section class="hero">
+      <div class="container">
+        <h1>{HERO.h1}</h1>
+        <p class="hero-subtitle">{HERO.subtitle}</p>
+        <div class="hero-buttons">
+          <a href={HERO.ctaPrimary.href} class="btn btn-primary">
+            {HERO.ctaPrimary.label}
+          </a>
+          <a href={HERO.ctaSecondary.href} class="btn btn-secondary">
+            {HERO.ctaSecondary.label}
+          </a>
+        </div>
+        <p class="hero-microcopy">{HERO.ctaMicrocopy}</p>
+      </div>
+    </section>
+
+    <!-- Features -->
+    <section class="features">
+      <div class="container">
+        <h2 class="section-title">Todo lo que necesitas</h2>
+        <div class="features-grid">
+          {FEATURES.map((feature) => (
+            <div class="feature-card">
+              {feature.linkTo ? (
+                <a href={feature.linkTo}>
+                  <div class="feature-icon">
+                    {feature.icon === "Palette" && (
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                        <circle cx="12" cy="12" r="10" />
+                        <circle cx="8" cy="10" r="1.5" fill="currentColor" />
+                        <circle cx="12" cy="8" r="1.5" fill="currentColor" />
+                        <circle cx="16" cy="10" r="1.5" fill="currentColor" />
+                        <circle cx="14" cy="14" r="1.5" fill="currentColor" />
+                        <path d="M8 16c2-1 6-1 8 0" />
+                      </svg>
+                    )}
+                    {feature.icon === "CreditCard" && (
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                        <rect x="2" y="5" width="20" height="14" rx="2" />
+                        <line x1="2" y1="10" x2="22" y2="10" />
+                        <line x1="6" y1="15" x2="10" y2="15" />
+                      </svg>
+                    )}
+                    {feature.icon === "LayoutDashboard" && (
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                        <rect x="3" y="3" width="7" height="9" rx="1" />
+                        <rect x="14" y="3" width="7" height="5" rx="1" />
+                        <rect x="14" y="12" width="7" height="9" rx="1" />
+                        <rect x="3" y="16" width="7" height="5" rx="1" />
+                      </svg>
+                    )}
+                    {feature.icon === "Globe" && (
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                        <circle cx="12" cy="12" r="10" />
+                        <line x1="2" y1="12" x2="22" y2="12" />
+                        <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
+                      </svg>
+                    )}
+                    {feature.icon === "ShieldCheck" && (
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+                        <path d="M9 12l2 2 4-4" />
+                      </svg>
+                    )}
+                    {feature.icon === "LifeBuoy" && (
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                        <circle cx="12" cy="12" r="10" />
+                        <circle cx="12" cy="12" r="4" />
+                        <line x1="4.93" y1="4.93" x2="9.17" y2="9.17" />
+                        <line x1="14.83" y1="14.83" x2="19.07" y2="19.07" />
+                        <line x1="14.83" y1="9.17" x2="19.07" y2="4.93" />
+                        <line x1="4.93" y1="19.07" x2="9.17" y2="14.83" />
+                      </svg>
+                    )}
+                  </div>
+                  <h3>{feature.title}</h3>
+                  <p>{feature.description}</p>
+                </a>
+              ) : (
+                <>
+                  <div class="feature-icon">
+                    {feature.icon === "Palette" && (
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                        <circle cx="12" cy="12" r="10" />
+                        <circle cx="8" cy="10" r="1.5" fill="currentColor" />
+                        <circle cx="12" cy="8" r="1.5" fill="currentColor" />
+                        <circle cx="16" cy="10" r="1.5" fill="currentColor" />
+                        <circle cx="14" cy="14" r="1.5" fill="currentColor" />
+                        <path d="M8 16c2-1 6-1 8 0" />
+                      </svg>
+                    )}
+                    {feature.icon === "CreditCard" && (
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                        <rect x="2" y="5" width="20" height="14" rx="2" />
+                        <line x1="2" y1="10" x2="22" y2="10" />
+                        <line x1="6" y1="15" x2="10" y2="15" />
+                      </svg>
+                    )}
+                    {feature.icon === "LayoutDashboard" && (
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                        <rect x="3" y="3" width="7" height="9" rx="1" />
+                        <rect x="14" y="3" width="7" height="5" rx="1" />
+                        <rect x="14" y="12" width="7" height="9" rx="1" />
+                        <rect x="3" y="16" width="7" height="5" rx="1" />
+                      </svg>
+                    )}
+                    {feature.icon === "Globe" && (
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                        <circle cx="12" cy="12" r="10" />
+                        <line x1="2" y1="12" x2="22" y2="12" />
+                        <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
+                      </svg>
+                    )}
+                    {feature.icon === "ShieldCheck" && (
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+                        <path d="M9 12l2 2 4-4" />
+                      </svg>
+                    )}
+                    {feature.icon === "LifeBuoy" && (
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                        <circle cx="12" cy="12" r="10" />
+                        <circle cx="12" cy="12" r="4" />
+                        <line x1="4.93" y1="4.93" x2="9.17" y2="9.17" />
+                        <line x1="14.83" y1="14.83" x2="19.07" y2="19.07" />
+                        <line x1="14.83" y1="9.17" x2="19.07" y2="4.93" />
+                        <line x1="4.93" y1="19.07" x2="9.17" y2="14.83" />
+                      </svg>
+                    )}
+                  </div>
+                  <h3>{feature.title}</h3>
+                  <p>{feature.description}</p>
+                </>
+              )}
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+
+    <!-- How It Works -->
+    <section class="how-it-works">
+      <div class="container">
+        <h2 class="section-title">Cómo empezar</h2>
+        <div class="steps">
+          {HOW_IT_WORKS.map((step) => (
+            <div class="step">
+              <div class="step-number">{step.step}</div>
+              <h3>{step.title}</h3>
+              <p>{step.description}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+
+    <!-- Pricing -->
+    <section class="pricing">
+      <div class="container">
+        <h2 class="section-title">Planes y precios</h2>
+        <div class="pricing-grid">
+          {PLANS.map((plan) => (
+            <div class={`plan-card ${plan.featured ? "featured" : ""}`}>
+              <h3>{plan.name}</h3>
+              <p class="plan-subtitle">{plan.subtitle}</p>
+              <div class="plan-price">
+                <span class="plan-price-initial">{plan.priceInstall}€</span>
+                <span class="plan-price-label">alta única</span>
+              </div>
+              <p class="plan-price-monthly">{plan.priceMonthly}€/mes</p>
+              <ul class="plan-features">
+                {plan.features.map((feature) => (
+                  <li>{feature}</li>
+                ))}
+              </ul>
+              <a href="/register" class="btn btn-primary">
+                {plan.cta}
+              </a>
+            </div>
+          ))}
+        </div>
+        <p class="plans-note">{PLANS_NOTE}</p>
+      </div>
+    </section>
+
+    <!-- FAQ -->
+    <section class="faq">
+      <div class="container">
+        <h2 class="section-title">Preguntas frecuentes</h2>
+        <div class="faq-list">
+          {HOME_FAQ.map((item) => (
+            <div class="faq-item">
+              <div class="faq-question">{item.q}</div>
+              <div class="faq-answer">{item.a}</div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+
+    <!-- CTA Band -->
+    <section class="cta-band">
+      <div class="container">
+        <h2>{CTA_BAND.title}</h2>
+        <p>{CTA_BAND.subtitle}</p>
+        <a href="/contacto" class="btn btn-primary">Contactar</a>
+      </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+      <div class="container">
+        <div class="footer-inner">
+          <a href="/" class="footer-logo">NeonHub</a>
+          <ul class="footer-links">
+            {NAV_LINKS.map((link) => (
+              <li>
+                <a href={link.href}>{link.label}</a>
+              </li>
+            ))}
+          </ul>
+        </div>
+        <p class="footer-copy">© 2026 NeonHub (NeonLabs)</p>
+      </div>
+    </footer>
+
+    <script>
+      document.querySelectorAll(".faq-question").forEach((question) => {
+        question.addEventListener("click", () => {
+          const item = question.parentElement;
+          item?.classList.toggle("open");
+        });
+      });
+    </script>
+  </body>
+</html>
