@@ -2855,12 +2855,8 @@ window.addEventListener('message', (event) => {
       }
   });
 
-  document.addEventListener('keydown', (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
-          const modal = document.getElementById('pwd-modal') as HTMLElement;
-          if (!modal.classList.contains('hidden')) closePwdModal();
-      }
-  });
+  // el cierre con Escape de pwd-modal lo hace ahora el manejador unificado
+  // que se define mas abajo (MODAL_CANCEL_HOOKS / topmostVisibleModal)
 
   // modal de confirmación de borrado de tienda
   let _sdmResolve: ((confirmed: boolean) => void) | null = null;
@@ -2950,23 +2946,47 @@ window.addEventListener('message', (event) => {
       _gcmResolve = null;
   });
 
-  // cerrar con Escape o clic en el fondo
+  // ── Cierre unificado de modales ──────────────────────────────────────────────
+  // Escape y clic en el fondo cierran el modal visible mas alto. Antes solo lo
+  // tenian dos modales de los 23 de la pagina, y ademas los que devuelven una
+  // Promise (store-delete, lead-delete, generic-confirm) se quedaban colgados
+  // si se cerraban sin resolver: el awaiting del handler no terminaba nunca.
+  const MODAL_CANCEL_HOOKS: Record<string, () => void> = {
+      'generic-confirm-modal': () => { _gcmResolve?.(false); _gcmResolve = null; },
+      'store-delete-modal':    () => { _sdmResolve?.(false); _sdmResolve = null; },
+      'lead-delete-modal':     () => { if (_ldmResolve) { _ldmResolve(false); _ldmResolve = null; } },
+  };
+
+  function closeModalById(id: string): boolean {
+      const el = document.getElementById(id) as HTMLElement | null;
+      if (!el || el.classList.contains('hidden')) return false;
+      el.classList.add('hidden');
+      MODAL_CANCEL_HOOKS[id]?.();
+      return true;
+  }
+
+  // Los modales visibles, del mas profundo en el DOM al mas reciente (todos
+  // comparten z-50, asi que el orden del DOM es el apilado real).
+  function topmostVisibleModal(): HTMLElement | null {
+      const visibles = Array.from(
+          document.querySelectorAll<HTMLElement>('div.fixed.inset-0')
+      ).filter(m => !m.classList.contains('hidden') && m.offsetParent !== null);
+      return visibles.length ? visibles[visibles.length - 1] : null;
+  }
+
   document.addEventListener('keydown', (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
-          const modal = document.getElementById('generic-confirm-modal') as HTMLElement;
-          if (modal && !modal.classList.contains('hidden')) {
-              modal.classList.add('hidden');
-              _gcmResolve?.(false);
-              _gcmResolve = null;
-          }
-      }
+      if (e.key !== 'Escape') return;
+      const pwd = document.getElementById('pwd-modal') as HTMLElement | null;
+      if (pwd && !pwd.classList.contains('hidden')) { closePwdModal(); return; }
+      const top = topmostVisibleModal();
+      if (top) closeModalById(top.id);
   });
 
-  document.getElementById('generic-confirm-modal')?.addEventListener('click', (e) => {
-      if (e.target === e.currentTarget) {
-          (e.currentTarget as HTMLElement).classList.add('hidden');
-          _gcmResolve?.(false);
-          _gcmResolve = null;
+  document.addEventListener('click', (e) => {
+      const t = e.target as HTMLElement;
+      // solo el overlay (no el contenido del modal) cierra
+      if (t?.classList?.contains('fixed') && t?.classList?.contains('inset-0') && t.id) {
+          closeModalById(t.id);
       }
   });
 
