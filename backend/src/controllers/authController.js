@@ -1486,7 +1486,21 @@ const generateSsoToken = async (req, res) => {
       return res.status(404).json({ success: false, message: 'Tienda no encontrada' });
     }
 
-    const hasAccess = user.store_id === store.id ||
+    // Un usuario de plataforma (scope='platform', p.ej. el rol ceo_neonhub) puede
+    // entrar en cualquier tienda sin tener una fila en user_stores — es justamente
+    // lo que permite el "proxy" desde el panel admin de la landing. Sin esta
+    // excepcion, generateSsoToken devolveria 403 siempre para el superadmin.
+    const isPlatformUser = !!(await sequelize.query(
+      `SELECT 1 FROM user_roles ur
+       JOIN roles r ON r.id = ur.role_id
+       WHERE ur.user_id = :uid AND ur.is_active = true
+         AND (r.scope = 'platform' OR r.name = 'superadmin')
+       LIMIT 1`,
+      { replacements: { uid: user.id }, type: sequelize.QueryTypes.SELECT }
+    )).length > 0;
+
+    const hasAccess = isPlatformUser ||
+      user.store_id === store.id ||
       !!(await UserStore.findOne({ where: { user_id: user.id, store_id: store.id } }));
 
     if (!hasAccess) {
