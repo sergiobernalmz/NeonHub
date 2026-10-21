@@ -197,6 +197,11 @@ const paymentStatusColors: Record<string, string> = {
                                                 <a href={`https://${store.subdomain}.neonhub.es`} target="_blank" class="text-xs text-violet-400 hover:text-violet-300 transition-colors" onclick="event.stopPropagation()">
                                                     {store.subdomain}.neonhub.es ↗
                                                 </a>
+                                                <button
+                                                    data-subdomain={store.subdomain}
+                                                    class="sso-store-btn mt-1 text-xs text-violet-300 hover:text-violet-200 transition-colors disabled:opacity-50 disabled:cursor-wait">
+                                                    Entrar como admin →
+                                                </button>
                                             </div>
                                         </td>
                                         <td class="py-4 px-4">
@@ -4465,6 +4470,51 @@ window.addEventListener('message', (event) => {
 
   // Refresh
   document.getElementById('btn-refresh')?.addEventListener('click', () => window.location.reload());
+
+  // Entrar a una tienda como superadmin de plataforma.
+  // Genera un token SSO de un solo uso (30s) y abre la tienda en pestana nueva
+  // con la sesion ya iniciada. El token lo consume el frontend de la tienda al
+  // cargar /admin?sso=... y se descarta de la URL.
+  document.addEventListener('click', async (e) => {
+      const btn = (e.target as HTMLElement).closest('.sso-store-btn') as HTMLButtonElement | null;
+      if (!btn) return;
+      const subdomain = btn.dataset.subdomain;
+      if (!subdomain) return;
+
+      const original = btn.textContent;
+      btn.disabled = true;
+      btn.textContent = 'Conectando...';
+      // Se abre la pestana de forma sincronica (dentro del gesto del usuario) para
+      // que el popup blocker no la bloquee, y luego se le asigna la URL real.
+      const win = window.open('', '_blank');
+      if (win) win.document.write('<p style="font-family:sans-serif;padding:2rem">Conectando con la tienda...</p>');
+      try {
+          const res = await fetch('/api/sso-redirect', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ subdomain })
+          });
+          const data = await res.json();
+          if (data.success && data.redirect_url) {
+              if (win) {
+                  win.location.href = data.redirect_url;
+              } else {
+                  window.location.href = data.redirect_url;
+              }
+              btn.textContent = 'Abierto en pestana nueva ✓';
+          } else {
+              win?.close();
+              alert(data.message || 'No se pudo conectar con la tienda.');
+              btn.disabled = false;
+              btn.textContent = original;
+          }
+      } catch {
+          win?.close();
+          alert('Error de conexion. Intentalo de nuevo.');
+          btn.disabled = false;
+          btn.textContent = original;
+      }
+  });
 
   // comprobamos pagos vencidos
   document.getElementById('btn-check-overdue')?.addEventListener('click', async (e) => {
