@@ -197,11 +197,12 @@ app.use((req, res, next) => {
     return next();
   }
   // Skip CSRF for Stripe webhooks, API key routes, and ingest routes.
-  // /api/billing/admin/* se autentica con la cabecera x-admin-secret (llamadas
-  // servidor-a-servidor desde el panel admin de la landing, que no tienen sesión
-  // de usuario ni token CSRF) — mismo caso que /api/v1 y /api/ingest, exento por
-  // diseño. El middleware requireAdminSecret de billing.js sigue exigiendo el secret.
-  if (req.path.includes('/payments/webhook') || req.path.includes('/billing/stripe/webhook') || req.path.startsWith('/api/v1') || req.path.startsWith('/api/ingest') || req.path.startsWith('/api/billing/admin')) {
+  // /api/billing/admin/* y /api/auth/sso-* se autentican con la cabecera
+  // x-admin-secret (llamadas servidor-a-servidor desde el panel admin de la
+  // landing, que no tienen sesión de usuario ni token CSRF) — mismo caso que
+  // /api/v1 y /api/ingest, exento por diseño. Sus middlewares propios
+  // (requireAdminSecret) siguen exigiendo el secret.
+  if (req.path.includes('/payments/webhook') || req.path.includes('/billing/stripe/webhook') || req.path.startsWith('/api/v1') || req.path.startsWith('/api/ingest') || req.path.startsWith('/api/billing/admin') || req.path.startsWith('/api/auth/sso-')) {
     return next();
   }
   const token = req.headers['x-csrf-token'] || req.body?._csrf;
