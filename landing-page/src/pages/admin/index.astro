@@ -2035,6 +2035,20 @@ const paymentStatusColors: Record<string, string> = {
         </div>
     </div>
 
+    <!-- Generic Confirmation Modal (reemplaza a los confirm() nativos del panel) -->
+    <div id="generic-confirm-modal" class="hidden fixed inset-0 z-50 bg-black/70 flex items-center justify-center p-4">
+        <div class="bg-gray-50 dark:bg-slate-900 border rounded-2xl p-6 w-full max-w-md gcm-border">
+            <h3 id="gcm-title" class="text-xl font-bold mb-2"></h3>
+            <p id="gcm-message" class="text-sm text-gray-600 dark:text-slate-300 mb-6"></p>
+            <div class="flex gap-3 justify-end">
+                <button id="gcm-cancel" class="px-4 py-2 bg-gray-100 dark:bg-white/5 hover:bg-gray-200 dark:hover:bg-white/10 text-gray-600 dark:text-slate-300 rounded-lg text-sm transition-colors border border-gray-200 dark:border-white/10">
+                    Cancelar
+                </button>
+                <button id="gcm-confirm" class="px-4 py-2 text-white rounded-lg text-sm font-medium transition-colors"></button>
+            </div>
+        </div>
+    </div>
+
     <!-- Lead Delete Confirmation Modal -->
     <div id="lead-delete-modal" class="hidden fixed inset-0 z-50 bg-black/70 flex items-center justify-center p-4">
         <div class="bg-gray-50 dark:bg-slate-900 border border-red-500/30 rounded-2xl p-6 w-full max-w-md">
@@ -2893,6 +2907,69 @@ window.addEventListener('message', (event) => {
       _sdmResolve = null;
   });
 
+  // modal de confirmación genérico — sustituye a los confirm() nativos del panel.
+// Devuelve Promise<boolean>: true si el usuario confirma, false si cancela.
+  let _gcmResolve: ((confirmed: boolean) => void) | null = null;
+
+  const GCM_THEMES: Record<string, { btn: string; border: string; title: string }> = {
+      red:    { btn: 'bg-red-600 hover:bg-red-700',      border: 'border-red-500/30',    title: 'text-red-400' },
+      yellow: { btn: 'bg-yellow-500 hover:bg-yellow-600',  border: 'border-yellow-500/30', title: 'text-yellow-400' },
+      green:  { btn: 'bg-green-600 hover:bg-green-700',    border: 'border-green-500/30',  title: 'text-green-400' }
+  };
+
+  function openConfirmModal(title: string, message: string, confirmLabel: string, theme: keyof typeof GCM_THEMES = 'red'): Promise<boolean> {
+      return new Promise(resolve => {
+          _gcmResolve = resolve;
+
+          const t = GCM_THEMES[theme] || GCM_THEMES.red;
+          const titleEl = document.getElementById('gcm-title') as HTMLElement;
+          const msgEl = document.getElementById('gcm-message') as HTMLElement;
+          const btn = document.getElementById('gcm-confirm') as HTMLButtonElement;
+          const card = document.querySelector('#generic-confirm-modal > div') as HTMLElement;
+
+          titleEl.textContent = title;
+          titleEl.className = `text-xl font-bold mb-2 ${t.title}`;
+          msgEl.textContent = message;
+          btn.textContent = confirmLabel;
+          btn.className = `px-4 py-2 text-white rounded-lg text-sm font-medium transition-colors ${t.btn}`;
+          card.className = `bg-gray-50 dark:bg-slate-900 border rounded-2xl p-6 w-full max-w-md ${t.border}`;
+
+          document.getElementById('generic-confirm-modal')!.classList.remove('hidden');
+      });
+  }
+
+  document.getElementById('gcm-cancel')?.addEventListener('click', () => {
+      document.getElementById('generic-confirm-modal')!.classList.add('hidden');
+      _gcmResolve?.(false);
+      _gcmResolve = null;
+  });
+
+  document.getElementById('gcm-confirm')?.addEventListener('click', () => {
+      document.getElementById('generic-confirm-modal')!.classList.add('hidden');
+      _gcmResolve?.(true);
+      _gcmResolve = null;
+  });
+
+  // cerrar con Escape o clic en el fondo
+  document.addEventListener('keydown', (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+          const modal = document.getElementById('generic-confirm-modal') as HTMLElement;
+          if (modal && !modal.classList.contains('hidden')) {
+              modal.classList.add('hidden');
+              _gcmResolve?.(false);
+              _gcmResolve = null;
+          }
+      }
+  });
+
+  document.getElementById('generic-confirm-modal')?.addEventListener('click', (e) => {
+      if (e.target === e.currentTarget) {
+          (e.currentTarget as HTMLElement).classList.add('hidden');
+          _gcmResolve?.(false);
+          _gcmResolve = null;
+      }
+  });
+
   // acciones de tienda (activar/desactivar, pausar, borrar)
   document.querySelectorAll('.action-btn').forEach(btn => {
       btn.addEventListener('click', async (e) => {
@@ -2909,14 +2986,28 @@ window.addEventListener('message', (event) => {
           };
           const label = labels[action] || action;
 
-          if (action === 'delete') {
-              const userCount = parseInt(target.dataset.userCount || '0');
-              const orderCount = parseInt(target.dataset.orderCount || '0');
-              const confirmed = await openStoreDeleteModal(storeName, userCount, orderCount);
-              if (!confirmed) return;
-          } else {
-              if (!confirm(`¿Seguro que quieres ${label} "${storeName}"?`)) return;
-          }
+if (action === 'delete') {
+               const userCount = parseInt(target.dataset.userCount || '0');
+               const orderCount = parseInt(target.dataset.orderCount || '0');
+               const confirmed = await openStoreDeleteModal(storeName, userCount, orderCount);
+               if (!confirmed) return;
+           } else {
+               const isDesactivating = action === 'toggle' && target.textContent?.trim() === 'Desactivar';
+               const isPausing = action === 'pause' && target.textContent?.trim() === 'Pausar';
+               const theme = (isDesactivating || isPausing) ? 'yellow' : 'green';
+               const confirmLabel = isDesactivating ? 'Desactivar' : isPausing ? 'Pausar' : (action === 'pause' ? 'Reactivar' : 'Activar');
+               const confirmed = await openConfirmModal(
+                   `${confirmLabel} "${storeName}"`,
+                   isDesactivating
+                       ? 'La tienda dejará de estar accesible y sus clientes no podrán entrar. Podrás reactivarla cuando quieras.'
+                       : isPausing
+                           ? 'La tienda quedará pausada y no aceptará pedidos hasta que la reanudes.'
+                           : `Se va a ${label} la tienda "${storeName}".`,
+                   confirmLabel,
+                   theme
+               );
+               if (!confirmed) return;
+           }
 
           target.disabled = true;
           const original = target.textContent || '';
@@ -3038,7 +3129,12 @@ window.addEventListener('message', (event) => {
           const b = btn as HTMLButtonElement;
           const uid = b.dataset.id!;
           const uname = b.dataset.name || uid;
-          if (!confirm(`¿Desbloquear la cuenta de "${uname}"?`)) return;
+          if (!await openConfirmModal(
+              `Desbloquear la cuenta de "${uname}"`,
+              'El usuario podrá volver a iniciar sesión tras el desbloqueo.',
+              'Desbloquear',
+              'green'
+          )) return;
           b.disabled = true; b.textContent = '...';
           try {
               const r = await fetch('/api/admin/users/action', {
@@ -3161,7 +3257,12 @@ window.addEventListener('message', (event) => {
                       const sid = b.dataset.storeId!;
                       const sname = b.dataset.storeName!;
                       const uname = b.dataset.username!;
-                      if (!confirm(`¿Eliminar a "${uname}" de la tienda "${sname}"?`)) return;
+                      if (!await openConfirmModal(
+                          `Quitar a "${uname}" de "${sname}"`,
+                          'Perderá el acceso a esta tienda. Su cuenta seguirá existiendo.',
+                          'Quitar de la tienda',
+                          'red'
+                      )) return;
                       b.disabled = true;
                       b.textContent = '...';
                       try {
@@ -3467,7 +3568,12 @@ window.addEventListener('message', (event) => {
                               const userId = target.dataset.id;
                               const userName = target.dataset.name;
                               if (!userId) return;
-                              if (!confirm(`¿Eliminar permanentemente a "${userName}"?`)) return;
+                              if (!await openConfirmModal(
+                                  `Eliminar a "${userName}"`,
+                                  'Se eliminará el usuario y todos sus datos. Esta acción no se puede deshacer.',
+                                  'Eliminar permanentemente',
+                                  'red'
+                              )) return;
                               target.disabled = true;
                               try {
                                   const res = await fetch('/api/admin/users/action', {
@@ -3559,7 +3665,13 @@ window.addEventListener('message', (event) => {
                           const target = btn as HTMLButtonElement;
                           const userId = target.dataset.id;
                           const userName = target.dataset.name;
-                          if (!userId || !confirm(`¿Eliminar a "${userName}"?`)) return;
+                          if (!userId) return;
+                          if (!await openConfirmModal(
+                                  `Eliminar a "${userName}"`,
+                                  'Se eliminará el usuario y todos sus datos. Esta acción no se puede deshacer.',
+                                  'Eliminar permanentemente',
+                                  'red'
+                              )) return;
                           target.disabled = true;
                           const r = await fetch('/api/admin/users/action', {
                               method: 'POST',
@@ -3664,7 +3776,13 @@ window.addEventListener('message', (event) => {
                   tableEl.querySelectorAll('.delete-payment-btn').forEach((btn: Element) => {
                       btn.addEventListener('click', async () => {
                           const paymentId = (btn as HTMLElement).dataset.id;
-                          if (!paymentId || !confirm('¿Eliminar este pago?')) return;
+                          if (!paymentId) return;
+                          if (!await openConfirmModal(
+                              'Eliminar este pago',
+                              'El registro del pago se eliminará permanentemente.',
+                              'Eliminar',
+                              'red'
+                          )) return;
                           try {
                               const delRes = await fetch('/api/admin/stores/action', {
                                   method: 'POST',
@@ -4409,7 +4527,12 @@ window.addEventListener('message', (event) => {
           const target = e.currentTarget as HTMLButtonElement;
           const id = target.dataset.id;
           if (!id) return;
-          if (!confirm('¿Aprobar este tenant y crear la tienda?')) return;
+          if (!await openConfirmModal(
+              'Aprobar este tenant',
+              'Se creará la tienda y se enviarán las credenciales de acceso.',
+              'Aprobar y crear tienda',
+              'green'
+          )) return;
 
           target.disabled = true;
           target.textContent = 'Creando...';
@@ -4439,7 +4562,12 @@ window.addEventListener('message', (event) => {
 
   // Cleanup completed provisioning jobs
   document.getElementById('cleanup-completed-btn')?.addEventListener('click', async (e) => {
-      if (!confirm('¿Eliminar todas las solicitudes de provisioning completadas? Esta acción no se puede deshacer.')) return;
+      if (!await openConfirmModal(
+          'Eliminar solicitudes completadas',
+          'Se eliminarán todas las solicitudes de provisioning completadas. Esta acción no se puede deshacer.',
+          'Eliminar todas',
+          'red'
+      )) return;
       const btn = e.currentTarget as HTMLButtonElement;
       btn.disabled = true;
       btn.textContent = 'Eliminando...';
@@ -5199,7 +5327,14 @@ window.addEventListener('message', (event) => {
           const userName = target.dataset.name;
           const isActive = target.dataset.active === 'true';
           if (!userId) return;
-          if (!confirm(`¿${isActive ? 'Desactivar' : 'Activar'} a "${userName}"?`)) return;
+          if (!await openConfirmModal(
+              `${isActive ? 'Desactivar' : 'Activar'} a "${userName}"`,
+              isActive
+                  ? 'El usuario no podrá iniciar sesión hasta que se reactive.'
+                  : 'El usuario podrá volver a iniciar sesión.',
+              isActive ? 'Desactivar' : 'Activar',
+              isActive ? 'yellow' : 'green'
+          )) return;
 
           target.disabled = true;
           try {
@@ -5372,7 +5507,12 @@ window.addEventListener('message', (event) => {
   // borramos el ticket actual
   document.getElementById('btn-delete-current-ticket')?.addEventListener('click', async () => {
       if (!currentTicketId) return;
-      if (!confirm('¿Eliminar este ticket permanentemente?')) return;
+      if (!await openConfirmModal(
+          'Eliminar este ticket',
+          'El ticket se eliminará permanentemente.',
+          'Eliminar',
+          'red'
+      )) return;
       try {
           const result = await ticketAction('delete', { ticketId: currentTicketId });
           if (result.success) {
@@ -5384,7 +5524,12 @@ window.addEventListener('message', (event) => {
 
   // borramos todos los tickets resueltos
   document.getElementById('btn-delete-resolved-tickets')?.addEventListener('click', async () => {
-      if (!confirm('¿Eliminar TODOS los tickets resueltos? Esta acción no se puede deshacer.')) return;
+      if (!await openConfirmModal(
+          'Eliminar TODOS los tickets resueltos',
+          'Se eliminarán permanentemente todos los tickets resueltos. Esta acción no se puede deshacer.',
+          'Eliminar todos',
+          'red'
+      )) return;
       try {
           const result = await ticketAction('delete-resolved', {});
           if (result.success) {
