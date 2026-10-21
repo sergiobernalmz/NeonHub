@@ -190,7 +190,7 @@ const paymentStatusColors: Record<string, string> = {
                                 </tr>
                             ) : (
                                 stores.map((store: any) => (
-                                    <tr class="hover:bg-gray-100 dark:hover:bg-white/10 transition-colors cursor-pointer store-detail-row" data-store-id={store.id}>
+                                    <tr class="hover:bg-gray-100 dark:hover:bg-white/10 transition-colors store-detail-row" data-store-id={store.id}>
                                         <td class="py-4 px-4">
                                             <div>
                                                 <p class="text-gray-900 dark:text-white font-medium">{store.name}</p>
@@ -3613,14 +3613,10 @@ window.addEventListener('message', (event) => {
       if (storeSelect) storeSelect.value = currentStoreDetailId;
   });
 
-  document.querySelectorAll('.store-detail-row').forEach(row => {
-      row.addEventListener('click', (e) => {
-          // Don't trigger if clicking action buttons
-          if ((e.target as HTMLElement).closest('.action-btn')) return;
-          const storeId = (row as HTMLElement).dataset.storeId;
-          if (storeId) openStoreDetail(storeId);
-      });
-  });
+  // El detalle de tienda se abre unicamente desde el boton "Gestionar"
+  // (manejado arriba, junto al resto de botones de accion). Anteriormente
+  // toda la fila era clicable, lo que hacia que pulsar en un espacio en blanco
+  // o en el nombre abriera el modal sin querer.
 
   // ═══════════════════════════════════════════════
   // Payment History
