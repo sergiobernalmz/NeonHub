@@ -2965,13 +2965,19 @@ window.addEventListener('message', (event) => {
       return true;
   }
 
-  // Los modales visibles, del mas profundo en el DOM al mas reciente (todos
-  // comparten z-50, asi que el orden del DOM es el apilado real).
+  // Los overlays visibles, ordenados por z-index real y, a igualdad, por orden
+  // del DOM (que desempata dentro del mismo nivel). No basta con el ultimo del
+  // DOM: conviven z-50, z-[60], z-[65] y z-[70].
   function topmostVisibleModal(): HTMLElement | null {
+      const level = (el: HTMLElement) => {
+          const z = parseInt(getComputedStyle(el).zIndex, 10);
+          return Number.isNaN(z) ? 0 : z;
+      };
       const visibles = Array.from(
           document.querySelectorAll<HTMLElement>('div.fixed.inset-0')
       ).filter(m => !m.classList.contains('hidden') && m.offsetParent !== null);
-      return visibles.length ? visibles[visibles.length - 1] : null;
+      if (!visibles.length) return null;
+      return visibles.reduce((top, m) => (level(m) >= level(top) ? m : top));
   }
 
   document.addEventListener('keydown', (e: KeyboardEvent) => {
