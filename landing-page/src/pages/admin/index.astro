@@ -2973,9 +2973,13 @@ window.addEventListener('message', (event) => {
           const z = parseInt(getComputedStyle(el).zIndex, 10);
           return Number.isNaN(z) ? 0 : z;
       };
+      // getClientRects() y no offsetParent: offsetParent devuelve null SIEMPRE
+      // en elementos con position: fixed (estan anclados al viewport), que es
+      // justo el caso de estos overlays — el filtro nunca encuentra nada.
+      // getClientRects() si devuelve 0 cuando el elemento esta oculto.
       const visibles = Array.from(
           document.querySelectorAll<HTMLElement>('div.fixed.inset-0')
-      ).filter(m => !m.classList.contains('hidden') && m.offsetParent !== null);
+      ).filter(m => !m.classList.contains('hidden') && m.getClientRects().length > 0);
       if (!visibles.length) return null;
       return visibles.reduce((top, m) => (level(m) >= level(top) ? m : top));
   }
