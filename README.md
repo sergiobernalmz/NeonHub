@@ -3,11 +3,15 @@
 
 > **Proyecto**: Sistema SaaS Multi-Tenant para Gestión de E-commerce
 > **Enfoque**: Sostenibilidad y Métricas Ecológicas
-> **Estado**: MVP funcional desplegado en VPS
+> **Estado**: MVP funcional desplegado en mi propio servidor (Dell R610)
 
 🌐 **Web:** [neonhub.es](https://neonhub.es) · 🛒 **Demo:** [demo.neonhub.es](https://demo.neonhub.es)
 
-Lo programé y desplegué yo mismo: API REST multi-tenant (Node.js + PostgreSQL), panel y tienda (React), landing (Astro), app móvil (Expo), pagos con Stripe y monitorización con Sentry y BetterStack.
+Lo programé y lo desplegué yo mismo en mi servidor: API REST multi-tenant (Node.js + PostgreSQL), panel y tienda (React), landing (Astro), app móvil (Expo), pagos con Stripe y monitorización con Sentry y BetterStack.
+
+| Landing | Panel de administración |
+|---|---|
+| ![Landing de NeonHub](docs/screenshots/landing.png) | ![Panel de administración](docs/screenshots/panel.png) |
 
 ---
 
@@ -172,7 +176,7 @@ NeonHub/
 - Servicios API: auth, products, orders, sustainability
 
 #### Infraestructura
-- Desplegado en VPS con PM2 + Nginx
+- Desplegado en servidor propio (Dell R610 + VMware ESXi) con PM2, Nginx Proxy Manager y Cloudflare Tunnels
 - Configuración Docker disponible
 
 ### Pendiente
@@ -302,16 +306,23 @@ cd mobile && npm start           # Expo
 - Sistema de pagos (Stripe)
 - Documentación técnica
 - Sistema de seguridad implementado
-- Desplegado en VPS (producción real)
+- Desplegado en servidor propio (producción real)
 - Tests automatizados (69/69 backend)
 
 ---
 
 ## Despliegue
 
-El proyecto está desplegado en VPS con:
-- **PM2** para gestión de procesos (backend, frontend build, landing SSR)
-- **Nginx** como reverse proxy
+El proyecto está desplegado en mi propio servidor, un **Dell PowerEdge R610 con VMware ESXi**:
+
+```
+Internet ──► Cloudflare (Tunnel) ──► VM de entrada: Nginx Proxy Manager ──► VM NeonHub: PM2
+                                     (enruta cada dominio a su VM)            (backend, frontend, landing SSR)
+```
+
+- **Cloudflare Tunnels**: el tráfico entra sin abrir puertos en el router de casa.
+- **Nginx Proxy Manager** en una VM aparte: según el dominio, envía cada petición a la máquina virtual que corresponde. La misma VM da servicio a mis otros proyectos.
+- **PM2** en la VM de NeonHub, para gestionar los procesos (backend, frontend build, landing SSR).
 - Configuración en `ecosystem.neonhub.config.js` y `docs/nginx-nonhub.conf`
 
 ---
