@@ -5,6 +5,10 @@
 > **Enfoque**: Sostenibilidad y Métricas Ecológicas
 > **Estado**: MVP funcional desplegado en VPS
 
+🌐 **Web:** [neonhub.es](https://neonhub.es) · 🛒 **Demo:** [demo.neonhub.es](https://demo.neonhub.es)
+
+Lo programé y desplegué yo mismo: API REST multi-tenant (Node.js + PostgreSQL), panel y tienda (React), landing (Astro), app móvil (Expo), pagos con Stripe y monitorización con Sentry y BetterStack.
+
 ---
 
 ## Descripción
@@ -62,17 +66,10 @@ pm2 start ecosystem.neonhub.config.js
 
 ---
 
-## Credenciales de Acceso (desarrollo)
-
-**Admin**: admin@test.com / admin123
-**Usuarios**: pueden registrarse libremente en `/register`
-
----
-
 ## Arquitectura del Sistema
 
 ```
-TrabajoFinalCursoDAM/
+NeonHub/
 ├── backend/              # API REST (Node.js + Express + PostgreSQL)
 │   ├── src/
 │   │   ├── models/      # 26 modelos de base de datos
@@ -98,9 +95,6 @@ TrabajoFinalCursoDAM/
 │       │                #  profile, reports, sustainability
 │       ├── services/    # API, auth, orders, products…
 │       └── context/     # AuthContext, CartContext
-│
-
-│                        #  login, register
 │
 ├── docs/                # Documentación técnica (~20 documentos)
 ├── ROADMAP/             # Roadmap SaaS (branding, dominios, etc.)
@@ -206,8 +200,8 @@ TrabajoFinalCursoDAM/
 ### Instalación
 ```bash
 # Clonar repositorio
-git clone <repo-url>
-cd TrabajoFinalCursoDAM
+git clone https://github.com/sergiobernalmz/NeonHub.git
+cd NeonHub
 
 # Instalar todas las dependencias
 npm run install:all
@@ -302,7 +296,7 @@ cd mobile && npm start           # Expo
 ## Para el TFG
 
 ### Requisitos cumplidos
-- Backend robusto con arquitectura SaaS multi-tenant
+- Backend con arquitectura SaaS multi-tenant
 - Frontend completo y funcional
 - App móvil con pantallas principales implementadas
 - Sistema de pagos (Stripe)
@@ -310,11 +304,6 @@ cd mobile && npm start           # Expo
 - Sistema de seguridad implementado
 - Desplegado en VPS (producción real)
 - Tests automatizados (69/69 backend)
-
-### Pendiente para entrega
-- Corrección de lint en frontend
-- Aumentar cobertura de tests
-- Documentar auditoría de dependencias
 
 ---
 
@@ -327,5 +316,5 @@ El proyecto está desplegado en VPS con:
 
 ---
 
-**Desarrollado por Sergio — 2º DAM**
-**Última actualización**: 10 de abril de 2026
+**Desarrollado por Sergio Bernal Martínez** · Proyecto final de DAM (FEMPA, 2026)
+[LinkedIn](https://www.linkedin.com/in/sergiobernalmz/) · sergio.bernal.mz@gmail.com
